@@ -290,6 +290,10 @@ public class ModifiersChecker {
                         }
                         break;
                     }
+                    case SETTER_PARAMETER: {
+                        reportIfNotMutableProperty(descriptor, annotation, INAPPLICABLE_SPARAM_TARGET);
+                        break;
+                    }
                 }
             }
         }
