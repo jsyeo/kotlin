@@ -25,6 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor;
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget;
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationWithTarget;
+import org.jetbrains.kotlin.diagnostics.DiagnosticFactory0;
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1;
 import org.jetbrains.kotlin.lexer.JetKeywordToken;
 import org.jetbrains.kotlin.lexer.JetModifierKeywordToken;
@@ -40,6 +43,7 @@ import java.util.*;
 import static org.jetbrains.kotlin.diagnostics.Errors.*;
 import static org.jetbrains.kotlin.lexer.JetTokens.*;
 import static org.jetbrains.kotlin.psi.JetStubbedPsiUtil.getContainingDeclaration;
+import static org.jetbrains.kotlin.resolve.BindingContext.BACKING_FIELD_REQUIRED;
 
 public class ModifiersChecker {
     private static final Collection<JetModifierKeywordToken> MODALITY_MODIFIERS =
@@ -190,6 +194,7 @@ public class ModifiersChecker {
             ModifierCheckerCore.INSTANCE$.check(modifierListOwner, trace, descriptor);
             checkTypeParametersModifiers(modifierListOwner);
             checkPlatformNameApplicability(descriptor);
+            checkAnnotationUseSiteTargetApplicability(modifierListOwner, descriptor);
             runDeclarationCheckers(modifierListOwner, descriptor);
             ClassDescriptor classDescriptor = descriptor instanceof ClassDescriptor ? (ClassDescriptor) descriptor : null;
             annotationChecker.check(modifierListOwner, trace, classDescriptor);
@@ -200,6 +205,7 @@ public class ModifiersChecker {
                 @NotNull DeclarationDescriptor descriptor
         ) {
             checkPlatformNameApplicability(descriptor);
+            checkAnnotationUseSiteTargetApplicability(modifierListOwner, descriptor);
             runDeclarationCheckers(modifierListOwner, descriptor);
             annotationChecker.check(modifierListOwner, trace,
                                               descriptor instanceof ClassDescriptor ? (ClassDescriptor) descriptor : null);
@@ -248,6 +254,57 @@ public class ModifiersChecker {
             }
         }
 
+        private void checkAnnotationUseSiteTargetApplicability(
+                @NotNull JetDeclaration modifierListOwner,
+                @NotNull DeclarationDescriptor descriptor
+        ) {
+            for (AnnotationWithTarget annotationWithTarget : descriptor.getAnnotations().getUseSiteTargetedAnnotations()) {
+                AnnotationDescriptor annotation = annotationWithTarget.getAnnotation();
+                AnnotationUseSiteTarget target = annotationWithTarget.getTarget();
+                if (target == null) return;
+
+                switch (target) {
+                    case FIELD:
+                        checkFieldTargetApplicability(modifierListOwner, descriptor, annotation);
+                        break;
+                    case FILE:
+                        throw new IllegalArgumentException("@file annotations are not allowed here");
+                }
+            }
+        }
+
+        private void checkFieldTargetApplicability(
+                JetDeclaration modifierListOwner,
+                DeclarationDescriptor descriptor,
+                AnnotationDescriptor annotation
+        ) {
+            if (reportIfNotPropertyDescriptor(descriptor, annotation, INAPPLICABLE_FIELD_TARGET)) return;
+
+            PropertyDescriptor propertyDescriptor = (PropertyDescriptor) descriptor;
+            boolean hasDelegate = modifierListOwner instanceof JetProperty && ((JetProperty) modifierListOwner).hasDelegate();
+
+            if (!hasDelegate && Boolean.FALSE.equals(trace.getBindingContext().get(BACKING_FIELD_REQUIRED, propertyDescriptor))) {
+                reportAnnotationTargetNotApplicable(annotation, INAPPLICABLE_FIELD_TARGET_NO_BACKING_FIELD);
+            }
+        }
+
+        private boolean reportIfNotPropertyDescriptor(
+                DeclarationDescriptor descriptor,
+                AnnotationDescriptor annotation,
+                DiagnosticFactory0<PsiElement> diagnosticFactory
+        ) {
+            if (!(descriptor instanceof PropertyDescriptor)) {
+                reportAnnotationTargetNotApplicable(annotation, diagnosticFactory);
+                return true;
+            }
+            return false;
+        }
+
+        private void reportAnnotationTargetNotApplicable(AnnotationDescriptor annotation, DiagnosticFactory0<PsiElement> diagnosticFactory) {
+            JetAnnotationEntry annotationEntry = DescriptorToSourceUtils.getSourceFromAnnotation(annotation);
+            if (annotationEntry == null) return;
+            trace.report(diagnosticFactory.on(annotationEntry));
+        }
 
         private boolean isRenamableFunction(@NotNull FunctionDescriptor descriptor) {
             DeclarationDescriptor containingDescriptor = descriptor.getContainingDeclaration();
