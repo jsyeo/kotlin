@@ -309,12 +309,19 @@ public class KotlinToJVMBytecodeCompiler {
         return generate(environment, result, environment.getSourceFiles(), null, null);
     }
 
+    private static long getUsedMemoryKb() {
+        System.gc();
+        Runtime rt = Runtime.getRuntime();
+        return (rt.totalMemory() - rt.freeMemory()) / 1024;
+    }
+
     @Nullable
     private static AnalysisResult analyze(@NotNull final KotlinCoreEnvironment environment, @Nullable String targetDescription) {
         MessageCollector collector = environment.getConfiguration().get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY);
         assert collector != null;
 
         long analysisStart = PerformanceCounter.Companion.currentTime();
+        long analysysBaseMem = getUsedMemoryKb();
         AnalyzerWithCompilerReport analyzerWithCompilerReport = new AnalyzerWithCompilerReport(collector);
         analyzerWithCompilerReport.analyzeAndReport(
                 environment.getSourceFiles(), new Function0<AnalysisResult>() {
@@ -335,10 +342,11 @@ public class KotlinToJVMBytecodeCompiler {
                 }
         );
         long analysisNanos = PerformanceCounter.Companion.currentTime() - analysisStart;
+        long analysisKBytes = getUsedMemoryKb() - analysysBaseMem;
         String message = "ANALYZE: " + environment.getSourceFiles().size() + " files (" +
                          environment.getSourceLinesOfCode() + " lines) " +
                          (targetDescription != null ? targetDescription : "") +
-                         "in " + TimeUnit.NANOSECONDS.toMillis(analysisNanos) + " ms";
+                         "in " + TimeUnit.NANOSECONDS.toMillis(analysisNanos) + " ms, used " + analysisKBytes + " kb";
         K2JVMCompiler.Companion.reportPerf(environment.getConfiguration(), message);
 
         AnalysisResult result = analyzerWithCompilerReport.getAnalysisResult();
@@ -396,13 +404,15 @@ public class KotlinToJVMBytecodeCompiler {
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled();
 
         long generationStart = PerformanceCounter.Companion.currentTime();
+        long generationBaseMem = getUsedMemoryKb();
 
         KotlinCodegenFacade.compileCorrectFiles(generationState, CompilationErrorHandler.THROW_EXCEPTION);
 
         long generationNanos = PerformanceCounter.Companion.currentTime() - generationStart;
+        long generationKBytes = getUsedMemoryKb() - generationBaseMem;
         String desc = moduleId != null ? "module " + moduleId + " " : "";
         String message = "GENERATE: " + sourceFiles.size() + " files (" +
-                         environment.countLinesOfCode(sourceFiles) + " lines) " + desc + "in " + TimeUnit.NANOSECONDS.toMillis(generationNanos) + " ms";
+                         environment.countLinesOfCode(sourceFiles) + " lines) " + desc + "in " + TimeUnit.NANOSECONDS.toMillis(generationNanos) + " ms, used " + generationKBytes + " kb";
         K2JVMCompiler.Companion.reportPerf(environment.getConfiguration(), message);
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled();
 

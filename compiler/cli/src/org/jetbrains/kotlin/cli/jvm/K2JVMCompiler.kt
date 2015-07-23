@@ -50,6 +50,12 @@ import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
 import kotlin.platform.platformStatic
 
+fun getUsedMemoryKb(): Long {
+    System.gc()
+    val rt = java.lang.Runtime.getRuntime()
+    return (rt.totalMemory() - rt.freeMemory()) / 1024
+}
+
 SuppressWarnings("UseOfSystemOutOrSystemErr")
 public open class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
 
@@ -208,7 +214,9 @@ public open class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
         val result = KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 
         val initNanos = System.nanoTime() - initStartNanos
-        reportPerf(configuration, "INIT: Compiler initialized in " + TimeUnit.NANOSECONDS.toMillis(initNanos) + " ms")
+        val usedMemoryKb = getUsedMemoryKb()
+        val initKBytes = usedMemoryKb - initStartKBytes
+        reportPerf(configuration, "INIT: Compiler initialized in " + TimeUnit.NANOSECONDS.toMillis(initNanos) + " ms, used " + initKBytes + " kb (currently used " + usedMemoryKb + " kb)")
         return result
     }
 
@@ -225,12 +233,14 @@ public open class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
 
     companion object {
         private var initStartNanos = System.nanoTime()
+        private var initStartKBytes = getUsedMemoryKb()
         // allows to track GC time for each run when repeated compilation is used
         private val elapsedGCTime = hashMapOf<String, Long>()
         private var elapsedJITTime = 0L
 
         public fun resetInitStartTime() {
             initStartNanos = System.nanoTime()
+            initStartKBytes = getUsedMemoryKb()
         }
 
         platformStatic public fun main(args: Array<String>) {
