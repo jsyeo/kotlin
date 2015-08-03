@@ -188,7 +188,7 @@ public class ModifiersChecker {
         public void checkModifiersForDeclaration(@NotNull JetDeclaration modifierListOwner, @NotNull MemberDescriptor descriptor) {
             checkNestedClassAllowed(modifierListOwner, descriptor);
             ModifierCheckerCore.INSTANCE$.check(modifierListOwner, trace, descriptor);
-            checkVarianceModifiers(modifierListOwner);
+            checkTypeParametersModifiers(modifierListOwner);
             checkPlatformNameApplicability(descriptor);
             runDeclarationCheckers(modifierListOwner, descriptor);
             ClassDescriptor classDescriptor = descriptor instanceof ClassDescriptor ? (ClassDescriptor) descriptor : null;
@@ -276,7 +276,7 @@ public class ModifiersChecker {
             }
         }
 
-        public void checkVarianceModifiers(@NotNull JetModifierListOwner modifierListOwner) {
+        public void checkTypeParametersModifiers(@NotNull JetModifierListOwner modifierListOwner) {
             if (!(modifierListOwner instanceof JetTypeParameterListOwner)) return;
             List<JetTypeParameter> typeParameters = ((JetTypeParameterListOwner) modifierListOwner).getTypeParameters();
             for (JetTypeParameter typeParameter : typeParameters) {
