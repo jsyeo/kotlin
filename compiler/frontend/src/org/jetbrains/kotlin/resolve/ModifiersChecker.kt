@@ -168,7 +168,7 @@ public object ModifierCheckerCore {
         val possibleParents = possibleParentTargetMap[modifier] ?: return true
         if (possibleParents == KotlinTarget.ALL_TARGET_SET) return true
         if (actualParents.any { it in possibleParents }) return true
-        trace.report(Errors.WRONG_MODIFIER_PARENT.on(node.psi, modifier, actualParents.firstOrNull()?.description ?: "this scope"))
+        trace.report(Errors.WRONG_MODIFIER_CONTAINING_DECLARATION.on(node.psi, modifier, actualParents.firstOrNull()?.description ?: "this scope"))
         return false
     }
 

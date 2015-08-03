@@ -2,7 +2,7 @@ enum class E {
     FIRST,
 
     SECOND {
-        <!WRONG_MODIFIER_PARENT!>companion<!> object {
+        <!WRONG_MODIFIER_CONTAINING_DECLARATION!>companion<!> object {
             fun foo() = 42
         }
     };

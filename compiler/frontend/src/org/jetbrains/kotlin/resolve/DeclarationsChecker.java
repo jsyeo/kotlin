@@ -219,6 +219,7 @@ public class DeclarationsChecker {
             }
         }
     }
+
     private void checkObject(JetObjectDeclaration declaration, ClassDescriptor classDescriptor) {
         if  (declaration.isLocal() && !declaration.isCompanion() && !declaration.isObjectLiteral()) {
             trace.report(LOCAL_OBJECT_NOT_ALLOWED.on(declaration, classDescriptor));

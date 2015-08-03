@@ -114,7 +114,7 @@ public class QuickFixRegistrar : QuickFixContributor {
         REDUNDANT_MODIFIER_IN_GETTER.registerFactory(removeRedundantModifierFactory)
         WRONG_MODIFIER_TARGET.registerFactory(removeModifierFactory)
         REDUNDANT_MODIFIER_TARGET.registerFactory(removeModifierFactory)
-        WRONG_MODIFIER_PARENT.registerFactory(removeModifierFactory)
+        WRONG_MODIFIER_CONTAINING_DECLARATION.registerFactory(removeModifierFactory)
         REPEATED_MODIFIER.registerFactory(removeModifierFactory)
 
         val changeToBackingFieldFactory = ChangeToBackingFieldFix.createFactory()

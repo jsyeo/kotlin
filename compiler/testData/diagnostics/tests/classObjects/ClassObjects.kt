@@ -26,7 +26,7 @@ class B() {
 }
 
 object b {
-  <!WRONG_MODIFIER_PARENT!>companion<!> object {
+  <!WRONG_MODIFIER_CONTAINING_DECLARATION!>companion<!> object {
     val x = 1
   } // error
 }

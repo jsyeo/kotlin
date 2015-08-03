@@ -18,13 +18,13 @@ class C {
 
 class D {
     companion object A {
-        <!WRONG_MODIFIER_PARENT!>companion<!> object {
+        <!WRONG_MODIFIER_CONTAINING_DECLARATION!>companion<!> object {
         }
     }
 }
 
-<!WRONG_MODIFIER_PARENT!>companion<!> object G {
-    <!WRONG_MODIFIER_PARENT!>companion<!> object
+<!WRONG_MODIFIER_CONTAINING_DECLARATION!>companion<!> object G {
+    <!WRONG_MODIFIER_CONTAINING_DECLARATION!>companion<!> object
 }
 
 <!WRONG_MODIFIER_TARGET!>companion<!> interface H {
@@ -33,7 +33,7 @@ class D {
 
 class J {
     companion object C {
-        <!WRONG_MODIFIER_PARENT!>companion<!> object
+        <!WRONG_MODIFIER_CONTAINING_DECLARATION!>companion<!> object
     }
 }
 
