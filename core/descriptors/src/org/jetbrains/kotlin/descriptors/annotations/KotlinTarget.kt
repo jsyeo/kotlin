@@ -55,10 +55,10 @@ public enum class KotlinTarget(val description: String, val isDefault: Boolean =
 
     LOCAL_FUNCTION("local function", false),
     MEMBER_FUNCTION("member function", false),
-    TOP_LEVEL_FUNCTION("global function", false),
+    TOP_LEVEL_FUNCTION("top level function", false),
 
     MEMBER_PROPERTY("member property", false), // includes PROPERTY_PARAMETER
-    TOP_LEVEL_PROPERTY("global property", false),
+    TOP_LEVEL_PROPERTY("top level property", false),
 
     INITIALIZER("initializer", false)
     ;
