@@ -169,9 +169,8 @@ public object ModifierCheckerCore {
         if (modifier !is JetModifierKeywordToken) return true
         val actualParents: List<KotlinTarget> = when (parentDescriptor) {
             is ClassDescriptor -> KotlinTarget.classActualTargets(parentDescriptor)
-            is PackageViewDescriptor, is ModuleDescriptor, is PackageFragmentDescriptor -> listOf(PACKAGE)
             is FunctionDescriptor -> listOf(FUNCTION)
-            else -> listOf()
+            else -> listOf(PACKAGE)
         }
         val possibleParents = possibleParentTargetMap[modifier] ?: return true
         if (possibleParents == KotlinTarget.ALL_TARGET_SET) return true
