@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.resolve
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
@@ -27,9 +26,10 @@ import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.types.JetType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget
-import org.jetbrains.kotlin.resolve.constants.BooleanValue
+import org.jetbrains.kotlin.resolve.descriptorUtil.isRepeatableAnnotation
+import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget.*
 
-public object AnnotationChecker {
+public class AnnotationChecker(private val additionalCheckers: Iterable<AdditionalAnnotationChecker>) {
 
     public fun check(annotated: JetAnnotated, trace: BindingTrace, descriptor: ClassDescriptor? = null) {
         if (annotated is JetTypeParameter) return // TODO: support type parameter annotations
@@ -48,11 +48,6 @@ public object AnnotationChecker {
                 }
             }
         }
-        if (annotated is JetClassOrObject) {
-            for (initializer in annotated.getAnonymousInitializers()) {
-                check(initializer, trace)
-            }
-        }
     }
 
     public fun checkExpression(expression: JetExpression, trace: BindingTrace) {
@@ -64,42 +59,17 @@ public object AnnotationChecker {
         }
     }
 
-    private fun isRepeatable(classDescriptor: ClassDescriptor): Boolean {
-        val annotationEntryDescriptor = classDescriptor.annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.annotation) ?: return false
-        val repeatableArgumentValue = annotationEntryDescriptor.allValueArguments.entrySet().firstOrNull {
-            "repeatable" == it.key.name.asString()
-        }?.getValue() as? BooleanValue ?: return false
-        return repeatableArgumentValue.value
-    }
-
     private fun checkEntries(entries: List<JetAnnotationEntry>, actualTargets: List<KotlinTarget>, trace: BindingTrace) {
         val entryTypes: MutableSet<JetType> = hashSetOf()
         for (entry in entries) {
             checkAnnotationEntry(entry, actualTargets, trace)
             val descriptor = trace.get(BindingContext.ANNOTATION, entry) ?: continue
             val classDescriptor = TypeUtils.getClassDescriptor(descriptor.type) ?: continue
-            if (!entryTypes.add(descriptor.type) && !isRepeatable(classDescriptor)) {
+            if (!entryTypes.add(descriptor.type) && !classDescriptor.isRepeatableAnnotation()) {
                 trace.report(Errors.REPEATED_ANNOTATION.on(entry));
             }
         }
-    }
-
-    public fun possibleTargetSet(classDescriptor: ClassDescriptor): Set<KotlinTarget>? {
-        val targetEntryDescriptor = classDescriptor.annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.target)
-                                    ?: return null
-        val valueArguments = targetEntryDescriptor.allValueArguments
-        val valueArgument = valueArguments.entrySet().firstOrNull()?.getValue() as? ArrayValue ?: return null
-        return valueArgument.value.filterIsInstance<EnumValue>().map {
-            KotlinTarget.valueOrNull(it.value.name.asString())
-        }.filterNotNull().toSet()
-    }
-
-    private fun possibleTargetSet(entry: JetAnnotationEntry, trace: BindingTrace): Set<KotlinTarget> {
-        val descriptor = trace.get(BindingContext.ANNOTATION, entry) ?: return KotlinTarget.DEFAULT_TARGET_SET
-        // For descriptor with error type, all targets are considered as possible
-        if (descriptor.type.isError) return KotlinTarget.ALL_TARGET_SET
-        val classDescriptor = TypeUtils.getClassDescriptor(descriptor.type) ?: return KotlinTarget.DEFAULT_TARGET_SET
-        return possibleTargetSet(classDescriptor) ?: KotlinTarget.DEFAULT_TARGET_SET
+        additionalCheckers.forEach { it.checkEntries(entries, actualTargets, trace) }
     }
 
     private fun checkAnnotationEntry(entry: JetAnnotationEntry, actualTargets: List<KotlinTarget>, trace: BindingTrace) {
@@ -108,31 +78,64 @@ public object AnnotationChecker {
         trace.report(Errors.WRONG_ANNOTATION_TARGET.on(entry, actualTargets.firstOrNull()?.description ?: "unidentified target"))
     }
 
-    private fun getActualTargetList(annotated: JetAnnotated, descriptor: ClassDescriptor?): List<KotlinTarget> {
-        if (annotated is JetClassOrObject) {
-            if (annotated is JetEnumEntry) return listOf(KotlinTarget.PROPERTY, KotlinTarget.FIELD)
-            return if (descriptor?.kind == ClassKind.ANNOTATION_CLASS) {
-                listOf(KotlinTarget.ANNOTATION_CLASS, KotlinTarget.CLASSIFIER)
+    companion object {
+
+        private fun possibleTargetSet(entry: JetAnnotationEntry, trace: BindingTrace): Set<KotlinTarget> {
+            val descriptor = trace.get(BindingContext.ANNOTATION, entry) ?: return KotlinTarget.DEFAULT_TARGET_SET
+            // For descriptor with error type, all targets are considered as possible
+            if (descriptor.type.isError) return KotlinTarget.ALL_TARGET_SET
+            val classDescriptor = TypeUtils.getClassDescriptor(descriptor.type) ?: return KotlinTarget.DEFAULT_TARGET_SET
+            return possibleTargetSet(classDescriptor) ?: KotlinTarget.DEFAULT_TARGET_SET
+        }
+
+        public fun possibleTargetSet(classDescriptor: ClassDescriptor): Set<KotlinTarget>? {
+            val targetEntryDescriptor = classDescriptor.annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.target)
+                                        ?: return null
+            val valueArguments = targetEntryDescriptor.allValueArguments
+            val valueArgument = valueArguments.entrySet().firstOrNull()?.getValue() as? ArrayValue ?: return null
+            return valueArgument.value.filterIsInstance<EnumValue>().map {
+                KotlinTarget.valueOrNull(it.value.name.asString())
+            }.filterNotNull().toSet()
+        }
+
+        public fun getActualTargetList(annotated: JetElement, descriptor: ClassDescriptor?): List<KotlinTarget> {
+            return when (annotated) {
+                is JetClassOrObject -> descriptor?.let { KotlinTarget.classActualTargets(it) } ?: listOf(CLASSIFIER)
+                is JetProperty ->
+                    if (annotated.isLocal) {
+                        listOf(LOCAL_VARIABLE)
+                    }
+                    else if (annotated.parent is JetClassOrObject || annotated.parent is JetClassBody) {
+                        listOf(MEMBER_PROPERTY, PROPERTY, FIELD)
+                    }
+                    else {
+                        listOf(TOP_LEVEL_PROPERTY, PROPERTY, FIELD)
+                    }
+                is JetParameter -> if (annotated.hasValOrVar()) listOf(PROPERTY_PARAMETER, MEMBER_PROPERTY, PROPERTY, FIELD) else listOf(VALUE_PARAMETER)
+                is JetConstructor<*> -> listOf(CONSTRUCTOR)
+                is JetFunction ->
+                    if (annotated.isLocal) {
+                        listOf(LOCAL_FUNCTION, FUNCTION)
+                    }
+                    else if (annotated.parent is JetClassOrObject || annotated.parent is JetClassBody) {
+                        listOf(MEMBER_FUNCTION, FUNCTION)
+                    }
+                    else {
+                        listOf(TOP_LEVEL_FUNCTION, FUNCTION)
+                    }
+                is JetPropertyAccessor -> if (annotated.isGetter) listOf(PROPERTY_GETTER) else listOf(PROPERTY_SETTER)
+                is JetPackageDirective -> listOf(PACKAGE)
+                is JetTypeReference -> listOf(TYPE)
+                is JetFile -> listOf(FILE)
+                is JetTypeParameter -> listOf(TYPE_PARAMETER)
+                is JetTypeProjection -> if (annotated.projectionKind == JetProjectionKind.STAR) listOf(STAR_PROJECTION) else listOf(TYPE_PROJECTION)
+                is JetClassInitializer -> listOf(INITIALIZER)
+                else -> listOf()
             }
-            else {
-                listOf(KotlinTarget.CLASSIFIER)
-            }
         }
-        if (annotated is JetProperty) {
-            return if (annotated.isLocal) listOf(KotlinTarget.LOCAL_VARIABLE) else listOf(KotlinTarget.PROPERTY, KotlinTarget.FIELD)
-        }
-        if (annotated is JetParameter) {
-            return if (annotated.hasValOrVar()) listOf(KotlinTarget.PROPERTY, KotlinTarget.FIELD) else listOf(KotlinTarget.VALUE_PARAMETER)
-        }
-        if (annotated is JetConstructor<*>) return listOf(KotlinTarget.CONSTRUCTOR)
-        if (annotated is JetFunction) return listOf(KotlinTarget.FUNCTION)
-        if (annotated is JetPropertyAccessor) {
-            return if (annotated.isGetter) listOf(KotlinTarget.PROPERTY_GETTER) else listOf(KotlinTarget.PROPERTY_SETTER)
-        }
-        if (annotated is JetPackageDirective) return listOf(KotlinTarget.PACKAGE)
-        if (annotated is JetTypeReference) return listOf(KotlinTarget.TYPE)
-        if (annotated is JetFile) return listOf(KotlinTarget.FILE)
-        if (annotated is JetTypeParameter) return listOf(KotlinTarget.TYPE_PARAMETER)
-        return listOf()
     }
+}
+
+public interface AdditionalAnnotationChecker {
+    public fun checkEntries(entries: List<JetAnnotationEntry>, actualTargets: List<KotlinTarget>, trace: BindingTrace)
 }
