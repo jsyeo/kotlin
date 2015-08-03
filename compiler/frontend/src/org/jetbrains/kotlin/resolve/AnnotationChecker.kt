@@ -109,7 +109,7 @@ public object AnnotationChecker {
                     listOf(MEMBER_PROPERTY, PROPERTY, FIELD)
                 }
                 else {
-                    listOf(GLOBAL_PROPERTY, PROPERTY, FIELD)
+                    listOf(TOP_LEVEL_PROPERTY, PROPERTY, FIELD)
                 }
             is JetParameter -> if (annotated.hasValOrVar()) listOf(PROPERTY_PARAMETER, MEMBER_PROPERTY, PROPERTY, FIELD) else listOf(VALUE_PARAMETER)
             is JetConstructor<*> -> listOf(CONSTRUCTOR)
@@ -121,7 +121,7 @@ public object AnnotationChecker {
                     listOf(MEMBER_FUNCTION, FUNCTION)
                 }
                 else {
-                    listOf(GLOBAL_FUNCTION, FUNCTION)
+                    listOf(TOP_LEVEL_FUNCTION, FUNCTION)
                 }
             is JetPropertyAccessor -> if (annotated.isGetter) listOf(PROPERTY_GETTER) else listOf(PROPERTY_SETTER)
             is JetPackageDirective -> listOf(PACKAGE)

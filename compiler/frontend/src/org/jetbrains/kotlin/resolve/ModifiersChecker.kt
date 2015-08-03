@@ -43,12 +43,12 @@ public object ModifierCheckerCore {
             SEALED_KEYWORD    to EnumSet.of(CLASS, LOCAL_CLASS, INNER_CLASS),
             INNER_KEYWORD     to EnumSet.of(INNER_CLASS),
             OVERRIDE_KEYWORD  to EnumSet.of(MEMBER_PROPERTY, MEMBER_FUNCTION),
-            PRIVATE_KEYWORD   to EnumSet.of(CLASSIFIER, MEMBER_FUNCTION, GLOBAL_FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER,
-                                            MEMBER_PROPERTY, GLOBAL_PROPERTY, CONSTRUCTOR),
-            PUBLIC_KEYWORD    to EnumSet.of(CLASSIFIER, MEMBER_FUNCTION, GLOBAL_FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER,
-                                            MEMBER_PROPERTY, GLOBAL_PROPERTY, CONSTRUCTOR),
-            INTERNAL_KEYWORD  to EnumSet.of(CLASSIFIER, MEMBER_FUNCTION, GLOBAL_FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER,
-                                            MEMBER_PROPERTY, GLOBAL_PROPERTY, CONSTRUCTOR),
+            PRIVATE_KEYWORD   to EnumSet.of(CLASSIFIER, MEMBER_FUNCTION, TOP_LEVEL_FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER,
+                                            MEMBER_PROPERTY, TOP_LEVEL_PROPERTY, CONSTRUCTOR),
+            PUBLIC_KEYWORD    to EnumSet.of(CLASSIFIER, MEMBER_FUNCTION, TOP_LEVEL_FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER,
+                                            MEMBER_PROPERTY, TOP_LEVEL_PROPERTY, CONSTRUCTOR),
+            INTERNAL_KEYWORD  to EnumSet.of(CLASSIFIER, MEMBER_FUNCTION, TOP_LEVEL_FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER,
+                                            MEMBER_PROPERTY, TOP_LEVEL_PROPERTY, CONSTRUCTOR),
             PROTECTED_KEYWORD to EnumSet.of(CLASSIFIER, MEMBER_FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, MEMBER_PROPERTY, CONSTRUCTOR),
             IN_KEYWORD        to EnumSet.of(TYPE_PARAMETER, TYPE_PROJECTION),
             OUT_KEYWORD       to EnumSet.of(TYPE_PARAMETER, TYPE_PROJECTION),
@@ -73,36 +73,44 @@ public object ModifierCheckerCore {
     )
 
     // First modifier in pair should be also first in declaration
-    private val mutualCompatibility: MutableMap<Pair<JetModifierKeywordToken, JetModifierKeywordToken>, Compatibility> = HashMap()
+    private val mutualCompatibility = buildCompatibilityMap()
 
-
-    init {
+    private fun buildCompatibilityMap(): Map<Pair<JetModifierKeywordToken, JetModifierKeywordToken>, Compatibility> {
+        val result = hashMapOf<Pair<JetModifierKeywordToken, JetModifierKeywordToken>, Compatibility>()
         // Variance: in + out are incompatible
-        incompatibilityRegister(listOf(IN_KEYWORD, OUT_KEYWORD))
-        // Abstract + open + final + sealed: incompatible
-        incompatibilityRegister(listOf(ABSTRACT_KEYWORD, OPEN_KEYWORD, FINAL_KEYWORD, SEALED_KEYWORD))
-        // open is redundant to abstract & override
-        redundantRegister(ABSTRACT_KEYWORD, OPEN_KEYWORD)
-        redundantRegister(OVERRIDE_KEYWORD, OPEN_KEYWORD)
-        // abstract is redundant to sealed
-        redundantRegister(SEALED_KEYWORD, ABSTRACT_KEYWORD)
+        result += incompatibilityRegister(listOf(IN_KEYWORD, OUT_KEYWORD))
         // Visibilities: incompatible
-        incompatibilityRegister(listOf(PRIVATE_KEYWORD, PROTECTED_KEYWORD, PUBLIC_KEYWORD, INTERNAL_KEYWORD))
+        result += incompatibilityRegister(listOf(PRIVATE_KEYWORD, PROTECTED_KEYWORD, PUBLIC_KEYWORD, INTERNAL_KEYWORD))
+        // Abstract + open + final + sealed: incompatible
+        result += incompatibilityRegister(listOf(ABSTRACT_KEYWORD, OPEN_KEYWORD, FINAL_KEYWORD, SEALED_KEYWORD))
+        // open is redundant to abstract & override
+        result += redundantRegister(ABSTRACT_KEYWORD, OPEN_KEYWORD)
+        result += redundantRegister(OVERRIDE_KEYWORD, OPEN_KEYWORD)
+        // abstract is redundant to sealed
+        result += redundantRegister(SEALED_KEYWORD, ABSTRACT_KEYWORD)
+        return result
     }
 
-    private fun redundantRegister(sufficient: JetModifierKeywordToken, redundant: JetModifierKeywordToken) {
-        mutualCompatibility[Pair(sufficient, redundant)] = Compatibility.REDUNDANT
-        mutualCompatibility[Pair(redundant, sufficient)] = Compatibility.REVERSE_REDUNDANT
+    private fun redundantRegister(
+            sufficient: JetModifierKeywordToken,
+            redundant: JetModifierKeywordToken
+    ): Map<Pair<JetModifierKeywordToken, JetModifierKeywordToken>, Compatibility> {
+        return mapOf(Pair(sufficient, redundant) to Compatibility.REDUNDANT,
+                     Pair(redundant, sufficient) to Compatibility.REVERSE_REDUNDANT)
     }
 
-    private fun incompatibilityRegister(list: List<JetModifierKeywordToken>) {
+    private fun incompatibilityRegister(
+            list: List<JetModifierKeywordToken>
+    ): Map<Pair<JetModifierKeywordToken, JetModifierKeywordToken>, Compatibility> {
+        val result = hashMapOf<Pair<JetModifierKeywordToken, JetModifierKeywordToken>, Compatibility>()
         for (first in list) {
             for (second in list) {
                 if (first != second) {
-                    mutualCompatibility[Pair(first, second)] = Compatibility.INCOMPATIBLE
+                    result[Pair(first, second)] = Compatibility.INCOMPATIBLE
                 }
             }
         }
+        return result
     }
 
     private fun compatibility(first: JetModifierKeywordToken, second: JetModifierKeywordToken): Compatibility {
