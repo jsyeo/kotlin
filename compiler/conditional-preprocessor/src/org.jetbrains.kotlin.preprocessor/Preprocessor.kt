@@ -130,35 +130,65 @@ class CollectModificationsVisitor(evaluators: List<Evaluator>) : JetTreeVisitorV
 data class Profile(val name: String, val evaluator: Evaluator, val targetRoot: File)
 
 
-public class Preprocessor {
+public class Preprocessor(val profiles: List<Profile>) {
 
     val fileType = JetFileType.INSTANCE
+    val jetPsiFactory: JetPsiFactory
 
+    init {
+        val configuration = CompilerConfiguration()
+        val environment = KotlinCoreEnvironment.createForProduction(Disposable {  }, configuration, emptyList())
+
+        val project = environment.project
+        jetPsiFactory = JetPsiFactory(project)
+    }
 
     sealed class FileProcessingResult {
         object Skip : FileProcessingResult()
         object Copy : FileProcessingResult()
 
-        class Modify(val resultText: String) : FileProcessingResult()
+        class Modify(val sourceText: String, modifications: List<Modification>) : FileProcessingResult()
     }
 
-//    private fun processFile(sourceFile: File, evaluator: Evaluator): FileProcessingResult {
-//        if (sourceFile.extension != fileType.defaultExtension)
-//            return FileProcessingResult.Copy
-//
-//        val sourceText = sourceFile.readText().convertLineSeparators()
-//        val psiFile = jetPsiFactory.createFile(sourceFile.name, sourceText)
-//        println("$psiFile")
-//
-//
-//    }
-}
+    private fun processFile(sourceFile: File, evaluators: List<Evaluator>): List<FileProcessingResult> {
+        if (sourceFile.extension != fileType.defaultExtension)
+            return evaluators map { FileProcessingResult.Copy }
 
-private fun processDirectory(sourceRoot: File, targetRelativeRoot: File, profiles: List<Profile>) {
+        val sourceText = sourceFile.readText().convertLineSeparators()
+        val psiFile = jetPsiFactory.createFile(sourceFile.name, sourceText)
+        println("$psiFile")
 
-    val (sourceFiles, sourceDirectories) = sourceRoot.listFiles().partition { !it.isDirectory }
+        val results = hashMapOf<Evaluator, FileProcessingResult>()
 
-    // TODO: keep processed file list for each profile
+        val fileAnnotations = psiFile.parseConditionalAnnotations()
+        evaluators.forEach { evaluator ->
+            if (!evaluator(fileAnnotations))
+                results += evaluator to FileProcessingResult.Skip
+        }
+
+        val visitor = CollectModificationsVisitor(evaluators - results.keySet())
+        psiFile.accept(visitor)
+
+        for ((evaluator, list) in visitor.elementModifications) {
+            val result =
+                if (list.isNotEmpty())
+                    FileProcessingResult.Modify(sourceText, list)
+                else
+                    FileProcessingResult.Copy
+            results += evaluator to result
+        }
+        return evaluators.map { results[it]!! }
+    }
+
+    private fun processDirectory(sourceRoot: File, targetRelativeRoot: File, profiles: List<Profile>) {
+
+        val (sourceFiles, sourceDirectories) = sourceRoot.listFiles().partition { !it.isDirectory }
+
+        // TODO: keep processed file list for each profile
+        val processedFiles = profiles.toMap({ it }, { hashSetOf<File>()})
+
+    }
+
 }
 
 private fun processRecursive(sourceRoot: File, targetRoot: File) {
