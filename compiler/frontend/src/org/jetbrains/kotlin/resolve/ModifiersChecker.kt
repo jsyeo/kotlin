@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.resolve
 
 import com.intellij.lang.ASTNode
+import com.intellij.psi.tree.TokenSet
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget
 import org.jetbrains.kotlin.diagnostics.Errors
@@ -24,6 +25,7 @@ import org.jetbrains.kotlin.lexer.JetModifierKeywordToken
 import java.util.*
 import org.jetbrains.kotlin.lexer.JetTokens.*
 import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget.*
+import org.jetbrains.kotlin.lexer.JetTokens
 import org.jetbrains.kotlin.psi.*
 
 public object ModifierCheckerCore {
@@ -123,9 +125,8 @@ public object ModifierCheckerCore {
     }
 
     private fun checkCompatibility(trace: BindingTrace, firstNode: ASTNode, secondNode: ASTNode, incorrectNodes: MutableSet<ASTNode>) {
-        val first = firstNode.elementType
-        val second = secondNode.elementType
-        if (first !is JetModifierKeywordToken || second !is JetModifierKeywordToken) return
+        val first = firstNode.elementType as JetModifierKeywordToken
+        val second = secondNode.elementType as JetModifierKeywordToken
         val compatibility = compatibility(first, second)
         when (compatibility) {
             Compatibility.COMPATIBLE -> {}
@@ -150,8 +151,7 @@ public object ModifierCheckerCore {
     }
 
     private fun checkTarget(trace: BindingTrace, node: ASTNode, actualTargets: List<KotlinTarget>): Boolean {
-        val modifier = node.elementType
-        if (modifier !is JetModifierKeywordToken) return true
+        val modifier = node.elementType as JetModifierKeywordToken
         val possibleTargets = possibleTargetMap[modifier] ?: emptySet()
         if (!actualTargets.any { it in possibleTargets }) {
             trace.report(Errors.WRONG_MODIFIER_TARGET.on(node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"))
@@ -165,8 +165,7 @@ public object ModifierCheckerCore {
     }
 
     private fun checkParent(trace: BindingTrace, node: ASTNode, parentDescriptor: DeclarationDescriptor?): Boolean {
-        val modifier = node.elementType
-        if (modifier !is JetModifierKeywordToken) return true
+        val modifier = node.elementType as JetModifierKeywordToken
         val actualParents: List<KotlinTarget> = when (parentDescriptor) {
             is ClassDescriptor -> KotlinTarget.classActualTargets(parentDescriptor)
             is FunctionDescriptor -> listOf(FUNCTION)
@@ -179,14 +178,17 @@ public object ModifierCheckerCore {
         return false
     }
 
+    private val MODIFIER_KEYWORD_SET = TokenSet.orSet(JetTokens.SOFT_KEYWORDS, TokenSet.create(JetTokens.IN_KEYWORD))
+
     private fun checkModifierList(list: JetModifierList, trace: BindingTrace, parentDescriptor: DeclarationDescriptor?, actualTargets: List<KotlinTarget>) {
         val incorrectNodes = hashSetOf<ASTNode>()
-        var second = list.node.firstChildNode;
-        while (second != null) {
-            var first = list.node.firstChildNode
-            while (first != second) {
+        val children = list.node.getChildren(MODIFIER_KEYWORD_SET)
+        for (second in children) {
+            for (first in children) {
+                if (first == second) {
+                    break;
+                }
                 checkCompatibility(trace, first, second, incorrectNodes)
-                first = first.treeNext
             }
             if (second !in incorrectNodes) {
                 if (!checkTarget(trace, second, actualTargets)) {
@@ -196,7 +198,6 @@ public object ModifierCheckerCore {
                     incorrectNodes += second
                 }
             }
-            second = second.treeNext;
         }
     }
 
