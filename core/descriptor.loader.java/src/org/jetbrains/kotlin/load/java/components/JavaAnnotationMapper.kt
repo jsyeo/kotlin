@@ -130,16 +130,21 @@ class JavaRetentionRepeatableAnnotationDescriptor(
 ): AbstractJavaAnnotationDescriptor(c, retentionAnnotation, c.module.builtIns.annotationAnnotation) {
 
     private val valueArguments = c.storageManager.createLazyValue {
-        val retentionArgument = when (firstArgument) {
-            is JavaEnumValueAnnotationArgument -> JavaAnnotationTargetMapper.mapJavaRetentionArgument(firstArgument, c.module.builtIns)
-            else -> null
-        }
-        val retentionParameterDescriptor = valueParameters.first {
-            it.name == JvmAnnotationNames.RETENTION_ANNOTATION_PARAMETER_NAME
-        }
         val repeatableArgument = if (repeatable) BooleanValue(true, c.module.builtIns) else null
         val repeatableParameterDescriptor = valueParameters.first {
             it.name == JvmAnnotationNames.REPEATABLE_ANNOTATION_PARAMETER_NAME
+        }
+        val retentionArgument = if (repeatableArgument != null) {
+            EnumValue(c.module.builtIns.getAnnotationRetentionEnumEntry(KotlinRetention.SOURCE)!!)
+        }
+        else {
+            when (firstArgument) {
+                is JavaEnumValueAnnotationArgument -> JavaAnnotationTargetMapper.mapJavaRetentionArgument(firstArgument, c.module.builtIns)
+                else -> null
+            }
+        }
+        val retentionParameterDescriptor = valueParameters.first {
+            it.name == JvmAnnotationNames.RETENTION_ANNOTATION_PARAMETER_NAME
         }
         val documentedArgument = if (documented) BooleanValue(true, c.module.builtIns) else null
         val documentedParameterDescriptor = valueParameters.first {
