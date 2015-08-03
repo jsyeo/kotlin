@@ -153,15 +153,15 @@ public object ModifierCheckerCore {
         val modifier = node.elementType
         if (modifier !is JetModifierKeywordToken) return true
         val possibleTargets = possibleTargetMap[modifier] ?: emptySet()
-        if (actualTargets.any { it in possibleTargets }) {
-            val redundantTargets = redundantTargetMap[modifier] ?: emptySet()
-            if (actualTargets.any { it in redundantTargets}) {
-                trace.report(Errors.REDUNDANT_MODIFIER_FOR_TARGET.on(node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"))
-            }
-            return true
+        if (!actualTargets.any { it in possibleTargets }) {
+            trace.report(Errors.WRONG_MODIFIER_TARGET.on(node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"))
+            return false
         }
-        trace.report(Errors.WRONG_MODIFIER_TARGET.on(node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"))
-        return false
+        val redundantTargets = redundantTargetMap[modifier] ?: emptySet()
+        if (actualTargets.any { it in redundantTargets}) {
+            trace.report(Errors.REDUNDANT_MODIFIER_FOR_TARGET.on(node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"))
+        }
+        return true
     }
 
     private fun checkParent(trace: BindingTrace, node: ASTNode, parentDescriptor: DeclarationDescriptor?): Boolean {
