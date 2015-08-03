@@ -148,7 +148,7 @@ public object ModifierCheckerCore {
         if (actualTargets.any { it in possibleTargets }) {
             val redundantTargets = redundantTargetMap[modifier] ?: emptySet()
             if (actualTargets.any { it in redundantTargets}) {
-                trace.report(Errors.REDUNDANT_MODIFIER_TARGET.on(node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"))
+                trace.report(Errors.REDUNDANT_MODIFIER_FOR_TARGET.on(node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"))
             }
             return true
         }
