@@ -22,7 +22,7 @@ import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.kotlin.idea.caches.JarUserDataManager
+import org.jetbrains.kotlin.idea.caches.JarUserDataIndex
 import org.jetbrains.kotlin.js.JavaScript
 import org.jetbrains.kotlin.utils.KotlinJavascriptMetadataUtils
 import kotlin.platform.platformStatic
@@ -38,7 +38,7 @@ public object KotlinJavaScriptLibraryDetectionUtil {
         if (JavaRuntimeDetectionUtil.getJavaRuntimeVersion(classesRoots) != null) return false
 
         classesRoots.forEach { root ->
-            val cachedResult = JarUserDataManager.getValue(HasKotlinJSMetadataInJar, root)
+            val cachedResult = JarUserDataIndex.getValue(HasKotlinJSMetadataInJar, root)
 
             @suppress("NON_EXHAUSTIVE_WHEN")
             when (cachedResult) {
@@ -59,7 +59,7 @@ public object KotlinJavaScriptLibraryDetectionUtil {
             JavaScript.EXTENSION == file.getExtension() &&
             KotlinJavascriptMetadataUtils.hasMetadata(String(file.contentsToByteArray(false)))
 
-    public object HasKotlinJSMetadataInJar : JarUserDataManager.JarUserDataCollector<HasKotlinJSMetadataInJar.JsMetadataState> {
+    public object HasKotlinJSMetadataInJar : JarUserDataIndex.JarUserDataCollector<HasKotlinJSMetadataInJar.JsMetadataState> {
         public enum class JsMetadataState {
             HAS_JS_METADATA,
             NO_JS_METADATA,
@@ -81,5 +81,7 @@ public object KotlinJavaScriptLibraryDetectionUtil {
                 JsMetadataState.NO_JS_METADATA
             }
         }
+
+        override fun state(str: String) = JsMetadataState.valueOf(str)
     }
 }
