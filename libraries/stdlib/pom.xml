@@ -67,6 +67,11 @@
                         <configuration>
                             <source>src</source>
                             <output>target/preprocessed-src</output>
+                            <profiles>
+                                <jvm6 />
+                                <jvm7 />
+                                <jvm8 />
+                            </profiles>
                         </configuration>
                     </execution>
                 </executions>

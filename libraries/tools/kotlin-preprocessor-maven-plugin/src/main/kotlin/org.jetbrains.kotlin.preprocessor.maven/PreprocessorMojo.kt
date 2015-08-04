@@ -29,9 +29,20 @@ public class PreprocessorMojo : AbstractMojo() {
     @Parameter
     public var output: File? = null
 
+    @Parameter
+    public var profiles: Map<String, File?> = emptyMap()
+
 
     override fun execute() {
-        getLog().info("Preprocessing $source to $output")
+        val mappedProfiles = profiles.mapValues { getProfileTargetPath(it.key, it.value)  }
+        log.info("Preprocessing sources from $source")
+        mappedProfiles.forEach { log.info("Profile ${it.key} to ${it.value}") }
+
+    }
+
+    private fun getProfileTargetPath(key: String, value: File?): File {
+        if (output == null) return value!!
+        return value ?: File(output, key.toLowerCase())
     }
 
 }
