@@ -1,3 +1,4 @@
+@file: jvmVersion
 package kotlin.math
 
 import java.math.BigDecimal

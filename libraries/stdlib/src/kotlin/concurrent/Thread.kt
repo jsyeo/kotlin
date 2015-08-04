@@ -1,3 +1,4 @@
+@file: jvmVersion
 package kotlin.concurrent
 
 import java.util.concurrent.*
