@@ -75,6 +75,7 @@
         <module>tools/kotlin-jdk-annotations</module>
         <module>tools/kotlin-android-sdk-annotations</module>
         <module>tools/kotlin-maven-plugin</module>
+        <module>tools/kotlin-preprocessor-maven-plugin</module>
 
         <module>tools/runtime</module>
         <module>stdlib</module>

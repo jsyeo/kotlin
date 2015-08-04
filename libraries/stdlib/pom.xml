@@ -38,6 +38,8 @@
                         <goals>
                             <goal>compile</goal>
                         </goals>
+                        <configuration>
+                        </configuration>
                     </execution>
 
                     <execution>
@@ -49,6 +51,27 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-preprocessor-maven-plugin</artifactId>
+                <version>${project.version}</version>
+
+                <executions>
+                    <execution>
+                        <id>sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>preprocess</goal>
+                        </goals>
+                        <configuration>
+                            <source>src</source>
+                            <output>target/preprocessed-src</output>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 </project>
