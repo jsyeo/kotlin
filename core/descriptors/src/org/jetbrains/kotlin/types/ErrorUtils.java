@@ -96,15 +96,33 @@ public class ErrorUtils {
         @NotNull
         @Override
         public Collection<PropertyDescriptor> getSyntheticExtensionProperties(
-                @NotNull Collection<? extends JetType> receiverTypes, @NotNull Name name
+                @NotNull Collection<? extends JetType> receiverTypes, @NotNull Name name,
+                @NotNull UsageLocation location
         ) {
             return ERROR_PROPERTY_GROUP;
         }
 
         @NotNull
         @Override
+        public Collection<FunctionDescriptor> getSyntheticExtensionFunctions(
+                @NotNull Collection<? extends JetType> receiverTypes, @NotNull Name name,
+                @NotNull UsageLocation location
+        ) {
+            return Collections.<FunctionDescriptor>singleton(createErrorFunction(this));
+        }
+
+        @NotNull
+        @Override
         public Collection<PropertyDescriptor> getSyntheticExtensionProperties(@NotNull Collection<? extends JetType> receiverTypes) {
             return ERROR_PROPERTY_GROUP;
+        }
+
+        @NotNull
+        @Override
+        public Collection<FunctionDescriptor> getSyntheticExtensionFunctions(
+                @NotNull Collection<? extends JetType> receiverTypes
+        ) {
+            return Collections.<FunctionDescriptor>singleton(createErrorFunction(this));
         }
 
         @Override
@@ -212,7 +230,17 @@ public class ErrorUtils {
         @NotNull
         @Override
         public Collection<PropertyDescriptor> getSyntheticExtensionProperties(
-                @NotNull Collection<? extends JetType> receiverTypes, @NotNull Name name
+                @NotNull Collection<? extends JetType> receiverTypes, @NotNull Name name,
+                @NotNull UsageLocation location
+        ) {
+            throw new IllegalStateException();
+        }
+
+        @NotNull
+        @Override
+        public Collection<FunctionDescriptor> getSyntheticExtensionFunctions(
+                @NotNull Collection<? extends JetType> receiverTypes, @NotNull Name name,
+                @NotNull UsageLocation location
         ) {
             throw new IllegalStateException();
         }
@@ -220,6 +248,14 @@ public class ErrorUtils {
         @NotNull
         @Override
         public Collection<PropertyDescriptor> getSyntheticExtensionProperties(@NotNull Collection<? extends JetType> receiverTypes) {
+            throw new IllegalStateException();
+        }
+
+        @NotNull
+        @Override
+        public Collection<FunctionDescriptor> getSyntheticExtensionFunctions(
+                @NotNull Collection<? extends JetType> receiverTypes
+        ) {
             throw new IllegalStateException();
         }
 
