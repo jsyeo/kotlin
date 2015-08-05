@@ -4524,6 +4524,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("javaDocDeprecated.kt")
+            public void testJavaDocDeprecated() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/deprecated/javaDocDeprecated.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("nestedTypesUsage.kt")
             public void testNestedTypesUsage() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/deprecated/nestedTypesUsage.kt");
@@ -9411,6 +9417,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("elvisOnUnit.kt")
+            public void testElvisOnUnit() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/nullableTypes/elvisOnUnit.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("nullAssertOnTypeWithNullableUpperBound.kt")
             public void testNullAssertOnTypeWithNullableUpperBound() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/nullableTypes/nullAssertOnTypeWithNullableUpperBound.kt");
@@ -9432,6 +9444,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
             @TestMetadata("redundantNullableInSupertype.kt")
             public void testRedundantNullableInSupertype() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/nullableTypes/redundantNullableInSupertype.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("safeAccessOnUnit.kt")
+            public void testSafeAccessOnUnit() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/nullableTypes/safeAccessOnUnit.kt");
                 doTest(fileName);
             }
 
