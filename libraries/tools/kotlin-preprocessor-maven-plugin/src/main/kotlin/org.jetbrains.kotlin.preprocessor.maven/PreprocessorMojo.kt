@@ -19,6 +19,9 @@ package org.jetbrains.kotlin.preprocessor.maven
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugins.annotations.*
 import java.io.File
+import org.jetbrains.kotlin.preprocessor.*
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @Mojo(name = "preprocess")
 public class PreprocessorMojo : AbstractMojo() {
@@ -27,22 +30,34 @@ public class PreprocessorMojo : AbstractMojo() {
     public var source: File? = null
 
     @Parameter
-    public var output: File? = null
+    public var output: String? = null
 
     @Parameter
     public var profiles: Map<String, File?> = emptyMap()
 
 
     override fun execute() {
-        val mappedProfiles = profiles.mapValues { getProfileTargetPath(it.key, it.value)  }
+        val source = requireNotNull(source, "source")
+        val profiles = profiles.entrySet().map { createProfile(it.key, getProfileTargetPath(it.key, it.value)) }
         log.info("Preprocessing sources from $source")
-        mappedProfiles.forEach { log.info("Profile ${it.key} to ${it.value}") }
+        profiles.forEach { with(it) { log.info("Profile $name to $targetRoot") } }
 
+        val logger = MavenLogger(log)
+        val pool = Executors.newCachedThreadPool()
+        profiles.forEach { pool.submit { Preprocessor(logger.withPrefix(it.name)).processSources(source, it) } }
+
+        pool.shutdown()
+        pool.awaitTermination(1, TimeUnit.MINUTES)
     }
 
     private fun getProfileTargetPath(key: String, value: File?): File {
-        if (output == null) return value!!
-        return value ?: File(output, key.toLowerCase())
+        val output = output ?: return value ?: throw IllegalArgumentException("Output path for profile '$key' is not specified")
+        val profilePlaceholder = "\$profile"
+        val outputDir = if (output.contains(profilePlaceholder))
+            File(output.replace(profilePlaceholder, key.toLowerCase()))
+        else
+            File(output, key.toLowerCase())
+        return value ?: outputDir
     }
 
 }
