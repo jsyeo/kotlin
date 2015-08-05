@@ -21,8 +21,9 @@ import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.SamConstructorDescriptorKindExclude
+import org.jetbrains.kotlin.load.java.lazy.KotlinClassLookupResult
 import org.jetbrains.kotlin.load.java.lazy.LazyJavaResolverContext
-import org.jetbrains.kotlin.load.java.lazy.resolveBinaryClass
+import org.jetbrains.kotlin.load.java.lazy.resolveKotlinBinaryClass
 import org.jetbrains.kotlin.load.java.structure.JavaClass
 import org.jetbrains.kotlin.load.java.structure.JavaPackage
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinaryClass
@@ -35,7 +36,7 @@ import org.jetbrains.kotlin.resolve.scopes.JetScope
 import org.jetbrains.kotlin.resolve.scopes.UsageLocation
 import org.jetbrains.kotlin.utils.addIfNotNull
 
-public class LazyPackageFragmentScopeForJavaPackage(
+public class LazyJavaPackageScope(
         c: LazyJavaResolverContext,
         private val jPackage: JavaPackage,
         containingDeclaration: LazyJavaPackageFragment
@@ -44,41 +45,39 @@ public class LazyPackageFragmentScopeForJavaPackage(
     // TODO: Storing references is a temporary hack until modules infrastructure is implemented.
     // See JetTypeMapperWithOutDirectories for details
     public val kotlinBinaryClass: KotlinJvmBinaryClass?
-            = c.kotlinClassFinder.findKotlinClass(PackageClassUtils.getPackageClassId(this.packageFragment.fqName))
+            = c.kotlinClassFinder.findKotlinClass(PackageClassUtils.getPackageClassId(packageFragment.fqName))
 
     private val deserializedPackageScope = c.storageManager.createLazyValue {
         val kotlinBinaryClass = kotlinBinaryClass
         if (kotlinBinaryClass == null)
             JetScope.Empty
         else
-            c.deserializedDescriptorResolver.createKotlinPackageScope(this.packageFragment, kotlinBinaryClass) ?: JetScope.Empty
+            c.deserializedDescriptorResolver.createKotlinPackageScope(packageFragment, kotlinBinaryClass) ?: JetScope.Empty
     }
 
     private val packageFragment: LazyJavaPackageFragment get() = getContainingDeclaration() as LazyJavaPackageFragment
 
-    private val classes = c.storageManager.createMemoizedFunctionWithNullableValues<Name, ClassDescriptor> { name -> findClass(name) }
-
-    private fun findClass(name: Name): ClassDescriptor? {
-        if (!SpecialNames.isSafeIdentifier(name)) return null
-
+    private val classes = c.storageManager.createMemoizedFunctionWithNullableValues<Name, ClassDescriptor> { name ->
         val classId = ClassId(packageFragment.fqName, name)
 
-        val kotlinClass = c.resolveBinaryClass(c.kotlinClassFinder.findKotlinClass(classId))
-        if (kotlinClass != null) return kotlinClass.descriptor
-
-        val javaClass = c.finder.findClass(classId)
-        if (javaClass != null) {
-            val classDescriptor = c.javaClassResolver.resolveClass(javaClass)
-            assert(classDescriptor == null || classDescriptor.containingDeclaration == packageFragment) {
-                "Wrong package fragment for $classDescriptor, expected $packageFragment"
+        val kotlinResult = c.resolveKotlinBinaryClass(c.kotlinClassFinder.findKotlinClass(classId))
+        when (kotlinResult) {
+            is KotlinClassLookupResult.Found -> kotlinResult.descriptor
+            is KotlinClassLookupResult.SyntheticClass -> null
+            is KotlinClassLookupResult.NotFound -> {
+                c.finder.findClass(classId)?.let { javaClass ->
+                    c.javaClassResolver.resolveClass(javaClass).apply {
+                        assert(this == null || this.containingDeclaration == packageFragment) {
+                            "Wrong package fragment for $this, expected $packageFragment"
+                        }
+                    }
+                }
             }
-            return classDescriptor
         }
-
-        return null
     }
 
-    override fun getClassifier(name: Name, location: UsageLocation): ClassifierDescriptor? = classes(name)
+    override fun getClassifier(name: Name, location: UsageLocation): ClassifierDescriptor? =
+            if (SpecialNames.isSafeIdentifier(name)) classes(name) else null
 
     override fun getProperties(name: Name, location: UsageLocation) = deserializedPackageScope().getProperties(name, location)
     override fun getFunctions(name: Name, location: UsageLocation) = deserializedPackageScope().getFunctions(name, location) + super.getFunctions(name, location)
@@ -99,8 +98,8 @@ public class LazyPackageFragmentScopeForJavaPackage(
         if (!kindFilter.acceptsKinds(DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS_MASK)) return listOf()
 
         return jPackage.getClasses(nameFilter).asSequence()
-                .filter { c -> c.getOriginKind() != JavaClass.OriginKind.KOTLIN_LIGHT_CLASS }
-                .map { c -> c.getName() }.toList()
+                .filter { c -> c.originKind != JavaClass.OriginKind.KOTLIN_LIGHT_CLASS }
+                .map { c -> c.name }.toList()
     }
 
     override fun getFunctionNames(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): Collection<Name> {
