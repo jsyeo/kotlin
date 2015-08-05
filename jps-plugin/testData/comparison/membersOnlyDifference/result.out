@@ -1,0 +1,22 @@
+changes in test/ClassWithAddedCompanionObject: MEMBERS
+    [Companion]
+changes in test/ClassWithChangedCompanionObject: MEMBERS
+    [FirstName, SecondName]
+changes in test/ClassWithFunAdded: MEMBERS
+    [added]
+changes in test/ClassWithFunRemoved: MEMBERS
+    [removed]
+changes in test/ClassWithNestedClasses: MEMBERS
+    [InnerClass4, NestedClass1, NestedClass3]
+changes in test/ClassWithPrimaryConstructorChanged: MEMBERS
+    [<init>]
+changes in test/ClassWithRemovedCompanionObject: MEMBERS
+    [Companion]
+changes in test/ClassWithSecondaryConstructorsAdded: MEMBERS
+    [<init>]
+changes in test/ClassWithSecondaryConstructorsRemoved: MEMBERS
+    [<init>]
+changes in test/ClassWithValAndFunAddedAndRemoved: MEMBERS
+    [funAdded, funRemoved, valAdded, valRemoved]
+changes in test/EnumClassWithChanges: MEMBERS
+    [CONST_2, CONST_3, CONST_4]
