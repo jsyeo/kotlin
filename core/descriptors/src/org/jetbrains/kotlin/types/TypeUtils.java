@@ -492,6 +492,23 @@ public class TypeUtils {
         return false;
     }
 
+    /**
+     * Differs from `isNullableType` only by treating type parameters: acceptsNullable(T) <=> T has nullable lower bound
+     * @return true if `null` can be assigned to storage of this type
+     */
+    public static boolean acceptsNullable(@NotNull JetType type) {
+        if (type.isMarkedNullable()) {
+            return true;
+        }
+        if (TypesPackage.isFlexible(type) && acceptsNullable(TypesPackage.flexibility(type).getUpperBound())) {
+            return true;
+        }
+        if (isTypeParameter(type)) {
+            return hasNullableLowerBound((TypeParameterDescriptor) type.getConstructor().getDeclarationDescriptor());
+        }
+        return false;
+    }
+
     public static boolean hasNullableSuperType(@NotNull JetType type) {
         if (type.getConstructor().getDeclarationDescriptor() instanceof ClassDescriptor) {
             // A class/trait cannot have a nullable supertype

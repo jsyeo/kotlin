@@ -31,7 +31,7 @@ public open class ChainedScope(
     private val scopeChain = scopes.clone()
     private var implicitReceiverHierarchy: List<ReceiverParameterDescriptor>? = null
 
-    private inline fun getFirstMatch<T>(callback: (JetScope) -> T): T {
+    private inline fun getFirstMatch<T : Any>(callback: (JetScope) -> T?): T? {
         // NOTE: This is performance-sensitive; please don't replace with map().firstOrNull()
         for (scope in scopeChain) {
             val result = callback(scope)
