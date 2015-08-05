@@ -1,7 +1,7 @@
 package
 
 incorrect() internal val z: kotlin.Int
-incorrect() internal fun foo(/*0*/ incorrect() y: @[incorrect()] kotlin.Int): kotlin.Int
+incorrect() internal fun foo(/*0*/ incorrect() y: @incorrect() kotlin.Int): kotlin.Int
 
 incorrect() internal final enum class My : kotlin.Enum<My> {
     incorrect() public enum entry FIRST : My {
@@ -39,7 +39,7 @@ incorrect() internal final enum class My : kotlin.Enum<My> {
 
 incorrect() internal final class correct {
     incorrect() public constructor correct()
-    public constructor correct(/*0*/ incorrect() x: kotlin.Int, /*1*/ incorrect() w: @[incorrect()] kotlin.Int)
+    public constructor correct(/*0*/ incorrect() x: kotlin.Int, /*1*/ incorrect() w: @incorrect() kotlin.Int)
     incorrect() internal final val x: kotlin.Int
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int

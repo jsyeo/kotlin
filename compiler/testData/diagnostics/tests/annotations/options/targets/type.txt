@@ -1,7 +1,7 @@
 package
 
 base() internal val z: kotlin.Int = 0
-base() internal fun foo(/*0*/ base() y: @[base()] kotlin.Int): kotlin.Int
+base() internal fun foo(/*0*/ base() y: @base() kotlin.Int): kotlin.Int
 
 base() internal final enum class My : kotlin.Enum<My> {
     base() public enum entry FIRST : My {
@@ -46,8 +46,8 @@ kotlin.annotation.target(allowedTargets = {AnnotationTarget.TYPE}) kotlin.annota
 
 base() internal final class correct {
     base() public constructor correct()
-    public constructor correct(/*0*/ base() x: @[base()] kotlin.Int)
-    base() internal final val x: @[base()] kotlin.Int
+    public constructor correct(/*0*/ base() x: @base() kotlin.Int)
+    base() internal final val x: @base() kotlin.Int
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
