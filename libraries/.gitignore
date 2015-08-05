@@ -2,3 +2,11 @@ target
 .idea
 *.iml
 *.ipr
+/stdlib/jvm6/*
+!/stdlib/jvm6/pom.xml
+/stdlib/jvm7/*
+!/stdlib/jvm7/pom.xml
+/stdlib/jvm8/*
+!/stdlib/jvm8/pom.xml
+/stdlib/package/*
+!/stdlib/package/pom.xml
