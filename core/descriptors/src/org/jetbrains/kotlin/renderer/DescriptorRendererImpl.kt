@@ -248,7 +248,7 @@ internal class DescriptorRendererImpl(
     private fun renderDefaultType(type: JetType): String {
         val sb = StringBuilder()
 
-        renderAnnotations(type, sb, /* needBrackets = */ true)
+        renderAnnotations(type, sb, needAtSign = true)
 
         if (type.isError()) {
             sb.append(type.getConstructor().toString()) // Debug name of an error type is more informative
@@ -334,7 +334,12 @@ internal class DescriptorRendererImpl(
             builder.append(if (FqName.ROOT.equalsTo(fqName)) "root package" else renderFqName(fqName))
         }
     }
-    private fun renderAnnotations(annotated: Annotated, builder: StringBuilder, needBrackets: Boolean = false) {
+    private fun renderAnnotations(
+            annotated: Annotated,
+            builder: StringBuilder,
+            needBrackets: Boolean = false,
+            needAtSign: Boolean = false
+    ) {
         if (DescriptorRendererModifier.ANNOTATIONS !in modifiers) return
 
         val excluded = if (annotated is JetType) excludedTypeAnnotationClasses else excludedAnnotationClasses
@@ -344,7 +349,7 @@ internal class DescriptorRendererImpl(
                 val annotationClass = annotation.getType().getConstructor().getDeclarationDescriptor() as ClassDescriptor
 
                 if (!excluded.contains(DescriptorUtils.getFqNameSafe(annotationClass))) {
-                    append(renderAnnotation(annotation, target)).append(" ")
+                    append(renderAnnotation(annotation, target, needAtSign)).append(" ")
                 }
             }
         }
@@ -362,11 +367,19 @@ internal class DescriptorRendererImpl(
         }
     }
 
-    override fun renderAnnotation(annotation: AnnotationDescriptor, target: AnnotationUseSiteTarget?): String {
+    override fun renderAnnotation(
+            annotation: AnnotationDescriptor,
+            target: AnnotationUseSiteTarget?,
+            needAtSign: Boolean
+    ): String {
         return StringBuilder {
             if (target != null) {
                 append("@" + target.renderName + ":")
             }
+            else if (needAtSign) {
+                append("@")
+            }
+
             append(renderType(annotation.getType()))
             if (verbose) {
                 renderAndSortAnnotationArguments(annotation).joinTo(this, ", ", "(", ")")

@@ -132,10 +132,10 @@ public abstract class AbstractAnnotationDescriptorResolveTest extends JetLiteFix
 
                 if (target != null) {
                     return WITH_ANNOTATION_ARGUMENT_TYPES.renderAnnotation(
-                            annotationDescriptor, target.getAnnotationUseSiteTarget());
+                            annotationDescriptor, target.getAnnotationUseSiteTarget(), false);
                 }
 
-                return WITH_ANNOTATION_ARGUMENT_TYPES.renderAnnotation(annotationDescriptor, null);
+                return WITH_ANNOTATION_ARGUMENT_TYPES.renderAnnotation(annotationDescriptor, null, false);
             }
         }, " ");
 
@@ -371,7 +371,7 @@ public abstract class AbstractAnnotationDescriptorResolveTest extends JetLiteFix
             @Override
             public String fun(AnnotationWithTarget annotationWithTarget) {
                 return WITH_ANNOTATION_ARGUMENT_TYPES.renderAnnotation(
-                        annotationWithTarget.getAnnotation(), annotationWithTarget.getTarget());
+                        annotationWithTarget.getAnnotation(), annotationWithTarget.getTarget(), false);
             }
         }, " ");
     }

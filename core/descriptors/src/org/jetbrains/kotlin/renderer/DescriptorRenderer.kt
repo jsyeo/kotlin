@@ -44,7 +44,9 @@ public interface DescriptorRenderer : Renderer<DeclarationDescriptor> {
 
     public fun renderClassifierName(klass: ClassifierDescriptor): String
 
-    public fun renderAnnotation(annotation: AnnotationDescriptor, target: AnnotationUseSiteTarget? = null): String
+    public fun renderAnnotation(annotation: AnnotationDescriptor,
+                                target: AnnotationUseSiteTarget? = null,
+                                needAtSign: Boolean = false): String
 
     override fun render(declarationDescriptor: DeclarationDescriptor): String
 
