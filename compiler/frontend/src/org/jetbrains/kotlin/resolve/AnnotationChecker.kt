@@ -61,12 +61,12 @@ public class AnnotationChecker(private val additionalCheckers: Iterable<Addition
     }
 
     private fun checkEntries(entries: List<JetAnnotationEntry>, actualTargets: TargetList, trace: BindingTrace) {
-        val entryTypes: MutableSet<JetType> = hashSetOf()
+        val entryTypes: MutableSet<Pair<JetType, JetAnnotationUseSiteTarget?>> = hashSetOf()
         for (entry in entries) {
             checkAnnotationEntry(entry, actualTargets, trace)
             val descriptor = trace.get(BindingContext.ANNOTATION, entry) ?: continue
             val classDescriptor = TypeUtils.getClassDescriptor(descriptor.type) ?: continue
-            if (!entryTypes.add(descriptor.type) && !classDescriptor.isRepeatableAnnotation()) {
+            if (!entryTypes.add(descriptor.type to entry.useSiteTarget) && !classDescriptor.isRepeatableAnnotation()) {
                 trace.report(Errors.REPEATED_ANNOTATION.on(entry));
             }
         }
