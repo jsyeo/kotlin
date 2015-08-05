@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.codegen;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.codegen.annotation.AnnotatedWithAdditionalAnnotations;
 import org.jetbrains.kotlin.codegen.state.JetTypeMapper;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.*;
@@ -114,13 +115,24 @@ public abstract class AnnotationCodegen {
         generateAdditionalAnnotations(annotated, returnType, annotationDescriptorsAlreadyPresent);
     }
 
+    private static Annotated unwrapAnnotated(@NotNull Annotated annotated) {
+        if (annotated instanceof AnnotatedWithAdditionalAnnotations) {
+            AnnotatedWithAdditionalAnnotations withAdditional = (AnnotatedWithAdditionalAnnotations) annotated;
+            if (withAdditional.getUnwrap()) return withAdditional.getAdditional();
+        }
+
+        return annotated;
+    }
+
     private void generateAdditionalAnnotations(
             @NotNull Annotated annotated,
             @Nullable Type returnType,
             @NotNull Set<String> annotationDescriptorsAlreadyPresent
     ) {
-        if (annotated instanceof CallableDescriptor) {
-            CallableDescriptor descriptor = (CallableDescriptor) annotated;
+        Annotated unwrapped = unwrapAnnotated(annotated);
+
+        if (unwrapped instanceof CallableDescriptor) {
+            CallableDescriptor descriptor = (CallableDescriptor) unwrapped;
 
             // No need to annotate privates, synthetic accessors and their parameters
             if (isInvisibleFromTheOutside(descriptor)) return;
@@ -130,8 +142,8 @@ public abstract class AnnotationCodegen {
                 generateNullabilityAnnotation(descriptor.getReturnType(), annotationDescriptorsAlreadyPresent);
             }
         }
-        if (annotated instanceof ClassDescriptor) {
-            ClassDescriptor classDescriptor = (ClassDescriptor) annotated;
+        if (unwrapped instanceof ClassDescriptor) {
+            ClassDescriptor classDescriptor = (ClassDescriptor) unwrapped;
             if (classDescriptor.getKind() == ClassKind.ANNOTATION_CLASS) {
                 generateDocumentedAnnotation(classDescriptor, annotationDescriptorsAlreadyPresent);
                 generateRetentionAnnotation(classDescriptor, annotationDescriptorsAlreadyPresent);

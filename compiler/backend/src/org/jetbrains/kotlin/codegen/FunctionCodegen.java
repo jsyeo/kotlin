@@ -225,7 +225,7 @@ public class FunctionCodegen {
         if (functionDescriptor instanceof PropertyAccessorDescriptor) {
             AnnotationUseSiteTarget target = functionDescriptor instanceof PropertySetterDescriptor ? PROPERTY_SETTER : PROPERTY_GETTER;
             Annotated annotated = new AnnotatedWithAdditionalAnnotations(
-                    null, ((PropertyAccessorDescriptor) functionDescriptor).getCorrespondingProperty());
+                    null, ((PropertyAccessorDescriptor) functionDescriptor).getCorrespondingProperty(), false);
 
             annotationCodegen.genAnnotations(annotated, asmMethod.getReturnType(), target);
         }
@@ -256,7 +256,7 @@ public class FunctionCodegen {
 
                 if (functionDescriptor instanceof PropertySetterDescriptor) {
                     PropertyDescriptor propertyDescriptor = ((PropertySetterDescriptor) functionDescriptor).getCorrespondingProperty();
-                    Annotated targetedAnnotations = new AnnotatedWithAdditionalAnnotations(null, propertyDescriptor);
+                    Annotated targetedAnnotations = new AnnotatedWithAdditionalAnnotations(null, propertyDescriptor, false);
                     annotationCodegen.genAnnotations(targetedAnnotations, parameterSignature.getAsmType(), SETTER_PARAMETER);
                 }
 
@@ -273,7 +273,7 @@ public class FunctionCodegen {
                                              : functionDescriptor).getExtensionReceiverParameter();
                 if (receiver != null) {
                     AnnotationCodegen annotationCodegen = AnnotationCodegen.forParameter(i, mv, typeMapper);
-                    Annotated targetedAnnotations = new AnnotatedWithAdditionalAnnotations(null, receiver.getType());
+                    Annotated targetedAnnotations = new AnnotatedWithAdditionalAnnotations(null, receiver.getType(), false);
                     annotationCodegen.genAnnotations(targetedAnnotations, parameterSignature.getAsmType(), RECEIVER);
                 }
             }

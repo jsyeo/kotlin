@@ -23,7 +23,8 @@ import org.jetbrains.kotlin.name.FqName
 
 public class AnnotatedWithAdditionalAnnotations(
         delegate: Annotated?,
-        additional: Annotated
+        public val additional: Annotated,
+        public val unwrap: Boolean = false
 ) : Annotated {
     private val annotations: Annotations = UseSiteTargetedAnnotations(delegate?.annotations ?: Annotations.EMPTY, additional.annotations)
 
