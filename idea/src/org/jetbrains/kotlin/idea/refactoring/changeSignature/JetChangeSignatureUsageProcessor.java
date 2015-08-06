@@ -605,7 +605,7 @@ public class JetChangeSignatureUsageProcessor implements ChangeSignatureUsagePro
 
         JetScope parametersScope = null;
         if (oldDescriptor instanceof ConstructorDescriptor && containingDeclaration instanceof ClassDescriptorWithResolutionScopes)
-            parametersScope = ((ClassDescriptorWithResolutionScopes) containingDeclaration).getScopeForInitializerResolution();
+            parametersScope = ((ClassDescriptorWithResolutionScopes) containingDeclaration).getScopeForInitializerResolution().asJetScope();
         else if (function instanceof JetFunction)
             parametersScope = org.jetbrains.kotlin.idea.refactoring.RefactoringPackage.getBodyScope((JetFunction) function, bindingContext);
 

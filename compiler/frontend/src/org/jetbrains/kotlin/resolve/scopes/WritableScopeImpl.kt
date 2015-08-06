@@ -240,9 +240,7 @@ public class WritableScopeImpl @jvmOverloads constructor(
     override val parentScope: JetLocalScope?
         get() = throw UnsupportedOperationException()
 
-    override fun asJetScope(): JetScope {
-        throw UnsupportedOperationException()
-    }
+    override fun asJetScope(): JetScope = this
 
     private class IntList(val last: Int, val prev: IntList?)
 
