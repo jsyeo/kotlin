@@ -139,6 +139,7 @@ public interface Errors {
     DiagnosticFactory0<PsiElement> INAPPLICABLE_RECEIVER_TARGET = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> INAPPLICABLE_PARAM_TARGET = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<PsiElement, String> REDUNDANT_ANNOTATION_TARGET = DiagnosticFactory1.create(WARNING);
+    DiagnosticFactory2<PsiElement, String, String> AMBIGUOUS_ANNOTATION_TARGETS = DiagnosticFactory2.create(ERROR);
 
     // Classes and traits
 
