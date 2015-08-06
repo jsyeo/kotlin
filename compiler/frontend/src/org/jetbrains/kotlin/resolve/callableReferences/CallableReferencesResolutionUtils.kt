@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.resolve.calls.results.OverloadResolutionResults
 import org.jetbrains.kotlin.resolve.calls.results.OverloadResolutionResultsUtil
 import org.jetbrains.kotlin.resolve.calls.util.CallMaker
 import org.jetbrains.kotlin.resolve.scopes.JetScope
+import org.jetbrains.kotlin.resolve.scopes.asJetLocalScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.TransientReceiver
 import org.jetbrains.kotlin.resolve.source.toSourceElement
@@ -184,7 +185,7 @@ private fun createReflectionTypeForProperty(
 
 private fun bindFunctionReference(expression: JetCallableReferenceExpression, referenceType: JetType, context: ResolutionContext<*>) {
     val functionDescriptor = AnonymousFunctionDescriptor(
-            context.scope.containingDeclaration,
+            context.scope.getContainingDeclaration(),
             Annotations.EMPTY,
             CallableMemberDescriptor.Kind.DECLARATION,
             expression.toSourceElement())
@@ -195,7 +196,7 @@ private fun bindFunctionReference(expression: JetCallableReferenceExpression, re
 }
 
 private fun bindPropertyReference(expression: JetCallableReferenceExpression, referenceType: JetType, context: ResolutionContext<*>) {
-    val localVariable = LocalVariableDescriptor(context.scope.containingDeclaration, Annotations.EMPTY, Name.special("<anonymous>"),
+    val localVariable = LocalVariableDescriptor(context.scope.getContainingDeclaration(), Annotations.EMPTY, Name.special("<anonymous>"),
                                                 referenceType, /* mutable = */ false, expression.toSourceElement())
 
     context.trace.record(BindingContext.VARIABLE, expression, localVariable)

@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.resolve.calls.tasks.collectors.filtered
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.scopes.JetLocalScope
 import org.jetbrains.kotlin.resolve.scopes.JetScopeUtils
+import org.jetbrains.kotlin.resolve.scopes.asJetLocalScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.QualifierReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue.NO_RECEIVER

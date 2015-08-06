@@ -89,16 +89,17 @@ public interface JetScope {
         public val ALL_NAME_FILTER: (Name) -> Boolean = { true }
     }
 
-    fun asJetLocalScope(): JetLocalScope = object : JetLocalScope {
-        override fun getImplicitReceiversHierarchy() = this@JetScope.getImplicitReceiversHierarchy()
+}
 
-        public override fun getContainingDeclaration() = this@JetScope.getContainingDeclaration()
+public fun JetScope.asJetLocalScope(): JetLocalScope = object : JetLocalScope {
+    override fun getImplicitReceiversHierarchy() = this@asJetLocalScope.getImplicitReceiversHierarchy()
 
-        override val parentScope: JetLocalScope?
-            get() = null
+    public override fun getContainingDeclaration() = this@asJetLocalScope.getContainingDeclaration()
 
-        override fun asJetScope(): JetScope = this@JetScope
-    }
+    override val parentScope: JetLocalScope?
+        get() = null
+
+    override fun asJetScope(): JetScope = this@asJetLocalScope
 }
 
 public interface JetLocalScope {

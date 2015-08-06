@@ -110,7 +110,7 @@ public class TypeResolver(
         val typeElement = typeReference.getTypeElement()
 
         val type = resolveTypeElement(c, annotations, typeElement)
-        c.trace.record(BindingContext.TYPE_RESOLUTION_SCOPE, typeReference, c.scope)
+        c.trace.record(BindingContext.TYPE_RESOLUTION_SCOPE, typeReference, c.scope.asJetScope())
 
         return type
     }
@@ -301,8 +301,8 @@ public class TypeResolver(
         }
     }
 
-    public fun resolveClass(scope: JetScope, userType: JetUserType, trace: BindingTrace): ClassifierDescriptor? {
-        val classifierDescriptor = qualifiedExpressionResolver.lookupDescriptorsForUserType(userType, scope, trace, true)
+    public fun resolveClass(scope: JetLocalScope, userType: JetUserType, trace: BindingTrace): ClassifierDescriptor? {
+        val classifierDescriptor = qualifiedExpressionResolver.lookupDescriptorsForUserType(userType, scope.asJetScope(), trace, true)
                                         .firstIsInstanceOrNull<ClassifierDescriptor>()
         if (classifierDescriptor != null) {
             PlatformTypesMappedToKotlinChecker.reportPlatformClassMappedToKotlin(moduleDescriptor, trace, userType, classifierDescriptor)

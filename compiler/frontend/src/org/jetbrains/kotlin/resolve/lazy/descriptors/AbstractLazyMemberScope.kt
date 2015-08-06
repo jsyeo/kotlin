@@ -17,7 +17,10 @@
 package org.jetbrains.kotlin.resolve.lazy.descriptors
 
 import com.google.common.collect.Sets
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -27,12 +30,11 @@ import org.jetbrains.kotlin.resolve.lazy.ResolveSession
 import org.jetbrains.kotlin.resolve.lazy.data.JetScriptInfo
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProvider
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
-import org.jetbrains.kotlin.resolve.scopes.JetScope
+import org.jetbrains.kotlin.resolve.scopes.JetLocalScope
 import org.jetbrains.kotlin.resolve.scopes.JetScopeImpl
 import org.jetbrains.kotlin.resolve.scopes.UsageLocation
 import org.jetbrains.kotlin.storage.MemoizedFunctionToNotNull
 import org.jetbrains.kotlin.storage.StorageManager
-import org.jetbrains.kotlin.types.JetType
 import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.toReadOnlyList
 import java.util.LinkedHashSet
@@ -85,7 +87,7 @@ protected constructor(
         return result.toReadOnlyList()
     }
 
-    protected abstract fun getScopeForMemberDeclarationResolution(declaration: JetDeclaration): JetScope
+    protected abstract fun getScopeForMemberDeclarationResolution(declaration: JetDeclaration): JetLocalScope
 
     protected abstract fun getNonDeclaredFunctions(name: Name, result: MutableSet<FunctionDescriptor>)
 
