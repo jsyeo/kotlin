@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.resolve
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
@@ -77,7 +78,7 @@ public class AnnotationChecker(private val additionalCheckers: Iterable<Addition
         val applicableTargets = applicableTargetSet(entry, trace)
         val useSiteTarget = entry.useSiteTarget?.getAnnotationUseSiteTarget()
 
-        if (checkAmbiguousTargets(entry, applicableTargets, actualTargets.declarationSite, trace)) return
+        if (checkAmbiguousTargets(entry, actualTargets.declarationSite, trace)) return
 
         if (actualTargets.declarationSite.any {
             it in applicableTargets && (useSiteTarget == null || KotlinTarget.USE_SITE_MAPPING[useSiteTarget] == it)
@@ -99,14 +100,13 @@ public class AnnotationChecker(private val additionalCheckers: Iterable<Addition
 
     private fun checkAmbiguousTargets(
             entry: JetAnnotationEntry,
-            applicableTargets: Set<KotlinTarget>,
             actualTargets: List<KotlinTarget>,
             trace: BindingTrace
     ): Boolean {
         if (entry.useSiteTarget != null) return false
 
         fun check(vararg targets: KotlinTarget): Boolean {
-            val ambiguousTargets = targets.filter { it in actualTargets && it in applicableTargets }
+            val ambiguousTargets = targets.filter { it in actualTargets }
             if (ambiguousTargets.size() > 1) {
                 val targetsBeforeLast = ambiguousTargets.dropLast(1).map { it.description }.joinToString("'' , ''")
                 trace.report(Errors.AMBIGUOUS_ANNOTATION_TARGETS.on(entry, targetsBeforeLast, ambiguousTargets.last().description))
@@ -130,6 +130,11 @@ public class AnnotationChecker(private val additionalCheckers: Iterable<Addition
             // For descriptor with error type, all targets are considered as possible
             if (descriptor.type.isError) return KotlinTarget.ALL_TARGET_SET
             val classDescriptor = TypeUtils.getClassDescriptor(descriptor.type) ?: return KotlinTarget.DEFAULT_TARGET_SET
+            return applicableTargetSet(classDescriptor) ?: KotlinTarget.DEFAULT_TARGET_SET
+        }
+
+        public fun applicableTargetSet(descriptor: AnnotationDescriptor): Set<KotlinTarget> {
+            val classDescriptor = descriptor.type.constructor.declarationDescriptor as? ClassDescriptor ?: return emptySet()
             return applicableTargetSet(classDescriptor) ?: KotlinTarget.DEFAULT_TARGET_SET
         }
 
@@ -162,7 +167,7 @@ public class AnnotationChecker(private val additionalCheckers: Iterable<Addition
                     }
                 is JetParameter -> {
                     if (annotated.hasValOrVar()) {
-                        extendedTargetList(VALUE_PARAMETER_USE_SITE_TARGETS, PROPERTY_PARAMETER, MEMBER_PROPERTY, PROPERTY)
+                        extendedTargetList(VALUE_PARAMETER_USE_SITE_TARGETS, PROPERTY_PARAMETER, MEMBER_PROPERTY, PROPERTY, VALUE_PARAMETER)
                     }
                     else {
                         extendedTargetList(VALUE_PARAMETER_USE_SITE_TARGETS, VALUE_PARAMETER)
