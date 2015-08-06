@@ -1185,6 +1185,7 @@ public class DescriptorResolver {
             files = Sets.newIdentityHashSet();
         }
         files.add(file);
+
         trace.record(BindingContext.PACKAGE_TO_FILES, fqName, files);
     }
 }
