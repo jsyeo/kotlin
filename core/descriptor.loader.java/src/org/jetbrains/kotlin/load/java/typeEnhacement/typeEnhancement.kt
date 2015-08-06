@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.load.java.typeEnhacement.NullabilityQualifier.NULLAB
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.platform.JavaToKotlinClassMap
 import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.types.typeUtil.createProjection
 
 // The index in the lambda is the position of the type component:
 // Example: for `A<B, C<D, E>>`, indices go as follows: `0 - A<...>, 1 - B, 2 - C<D, E>, 3 - D, 4 - E`,
@@ -74,6 +75,8 @@ private fun JetType.enhanceInflexible(qualifiers: (Int) -> JavaTypeQualifiers, i
     val effectiveQualifiers = qualifiers(index)
     val (enhancedClassifier, enhancedMutabilityAnnotations) = originalClass.enhanceMutability(effectiveQualifiers, position)
 
+    val typeConstructor = enhancedClassifier.typeConstructor
+
     var globalArgIndex = index + 1
     val enhancedArguments = getArguments().mapIndexed {
         localArgIndex, arg ->
@@ -84,10 +87,7 @@ private fun JetType.enhanceInflexible(qualifiers: (Int) -> JavaTypeQualifiers, i
         else {
             val (enhancedType, subtreeSize) = arg.getType().enhancePossiblyFlexible(qualifiers, globalArgIndex)
             globalArgIndex += subtreeSize
-            TypeProjectionImpl(
-                    arg.getProjectionKind(),
-                    enhancedType
-            )
+            createProjection(enhancedType, arg.projectionKind, typeParameterDescriptor = typeConstructor.parameters[localArgIndex])
         }
     }
 
@@ -98,19 +98,20 @@ private fun JetType.enhanceInflexible(qualifiers: (Int) -> JavaTypeQualifiers, i
             enhancedNullabilityAnnotations
     ).filterNotNull().compositeAnnotationsOrSingle()
 
-    val (newSubstitution, substitutedEnhancedArgs) = computeNewSubstitutionAndArguments(
-        enhancedClassifier.typeConstructor.parameters, enhancedArguments
+    val newSubstitution = computeNewSubstitution(
+        typeConstructor.parameters, enhancedArguments
     )
 
-    val enhancedType = JetTypeImpl(
+    val enhancedType = JetTypeImpl.create(
             newAnnotations,
-            enhancedClassifier.getTypeConstructor(),
+            typeConstructor,
             enhancedNullability,
-            substitutedEnhancedArgs,
+            enhancedArguments,
             newSubstitution,
             if (enhancedClassifier is ClassDescriptor)
                 enhancedClassifier.getMemberScope(newSubstitution)
-            else enhancedClassifier.getDefaultType().getMemberScope()
+            else enhancedClassifier.getDefaultType().getMemberScope(),
+            capabilities
     )
     return Result(enhancedType, globalArgIndex - index)
 }
