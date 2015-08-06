@@ -1,5 +1,5 @@
 // KT-3525
-object B {
+<!CONFLICTING_JVM_DECLARATIONS!>object B<!> {
     class <!REDECLARATION!>C<!>
     class <!REDECLARATION!>C<!>
 
