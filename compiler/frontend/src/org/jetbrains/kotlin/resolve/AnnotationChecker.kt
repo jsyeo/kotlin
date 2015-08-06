@@ -78,11 +78,12 @@ public class AnnotationChecker(private val additionalCheckers: Iterable<Addition
         val applicableTargets = applicableTargetSet(entry, trace)
         val useSiteTarget = entry.useSiteTarget?.getAnnotationUseSiteTarget()
 
-        if (checkAmbiguousTargets(entry, actualTargets.declarationSite, trace)) return
-
         if (actualTargets.declarationSite.any {
             it in applicableTargets && (useSiteTarget == null || KotlinTarget.USE_SITE_MAPPING[useSiteTarget] == it)
-        }) return
+        }) {
+            checkAmbiguousTargets(entry, actualTargets.declarationSite, trace)
+            return
+        }
 
         if (useSiteTarget != null && actualTargets.useSite.any {
             it in applicableTargets && KotlinTarget.USE_SITE_MAPPING[useSiteTarget] == it
@@ -98,25 +99,18 @@ public class AnnotationChecker(private val additionalCheckers: Iterable<Addition
         }
     }
 
-    private fun checkAmbiguousTargets(
-            entry: JetAnnotationEntry,
-            actualTargets: List<KotlinTarget>,
-            trace: BindingTrace
-    ): Boolean {
-        if (entry.useSiteTarget != null) return false
+    private fun checkAmbiguousTargets(entry: JetAnnotationEntry, actualTargets: List<KotlinTarget>, trace: BindingTrace) {
+        if (entry.useSiteTarget != null) return
 
-        fun check(vararg targets: KotlinTarget): Boolean {
+        fun check(vararg targets: KotlinTarget) {
             val ambiguousTargets = targets.filter { it in actualTargets }
             if (ambiguousTargets.size() > 1) {
                 val targetsBeforeLast = ambiguousTargets.dropLast(1).map { it.description }.joinToString("'' , ''")
                 trace.report(Errors.AMBIGUOUS_ANNOTATION_TARGETS.on(entry, targetsBeforeLast, ambiguousTargets.last().description))
-                return true
             }
-
-            return false
         }
 
-        return check(VALUE_PARAMETER, PROPERTY)
+        check(VALUE_PARAMETER, PROPERTY)
     }
 
     companion object {
