@@ -322,6 +322,21 @@ public class JetChangeSignatureUsageProcessor implements ChangeSignatureUsagePro
             findOriginalReceiversUsages(functionUsageInfo, result, changeInfo);
         }
 
+        if (functionPsi instanceof JetConstructor) {
+            JetClassOrObject classOrObject = ((JetConstructor) functionPsi).getContainingClassOrObject();
+            if (classOrObject instanceof JetClass && ((JetClass) classOrObject).isEnum()) {
+                for (JetDeclaration declaration : classOrObject.getDeclarations()) {
+                    if (declaration instanceof JetEnumEntry) {
+                        JetEnumEntry enumEntry = (JetEnumEntry) declaration;
+                        if (!enumEntry.getDelegationSpecifiers().isEmpty()) {
+                            result.add(new JetFunctionCallUsage((JetDelegatorToSuperCall) enumEntry.getDelegationSpecifiers().get(0),
+                                                                functionUsageInfo));
+                        }
+                    }
+                }
+            }
+        }
+
         if (functionPsi instanceof JetClass && ((JetClass) functionPsi).isEnum()) {
             for (JetDeclaration declaration : ((JetClass) functionPsi).getDeclarations()) {
                 if (declaration instanceof JetEnumEntry && ((JetEnumEntry) declaration).getDelegationSpecifiers().isEmpty()) {
