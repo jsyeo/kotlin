@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.psi.psiUtil.PsiUtilPackage;
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo;
 import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor;
 import org.jetbrains.kotlin.resolve.scopes.JetLocalScope;
+import org.jetbrains.kotlin.resolve.scopes.ScopesPackage;
 
 public class DeclarationScopeProviderImpl implements DeclarationScopeProvider {
 
@@ -54,7 +55,7 @@ public class DeclarationScopeProviderImpl implements DeclarationScopeProvider {
         }
 
         if (parentDeclaration == null) {
-            return fileScopeProvider.getFileScope((JetFile) elementOfDeclaration.getContainingFile()).asJetLocalScope();
+            return ScopesPackage.asJetLocalScope(fileScopeProvider.getFileScope((JetFile) elementOfDeclaration.getContainingFile()));
         }
 
         if (parentDeclaration instanceof JetClassOrObject) {

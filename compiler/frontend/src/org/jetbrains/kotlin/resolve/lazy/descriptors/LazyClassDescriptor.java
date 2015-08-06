@@ -61,6 +61,7 @@ import static org.jetbrains.kotlin.diagnostics.Errors.*;
 import static org.jetbrains.kotlin.resolve.BindingContext.TYPE;
 import static org.jetbrains.kotlin.resolve.ModifiersChecker.*;
 import static org.jetbrains.kotlin.resolve.source.SourcePackage.toSourceElement;
+import static org.jetbrains.kotlin.resolve.scopes.ScopesPackage.asJetLocalScope;
 
 public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDescriptorWithResolutionScopes, LazyEntity {
     private static final Predicate<JetType> VALID_SUPERTYPE = new Predicate<JetType>() {
@@ -302,10 +303,11 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         }
         scope.changeLockLevel(WritableScope.LockLevel.READING);
 
-        return new ChainedScope(
+        JetScope chainedScope = new ChainedScope(
                 primaryConstructor,
                 "ScopeForPropertyInitializerResolution: " + getName(),
-                scope, getScopeForMemberDeclarationResolution().asJetScope()).asJetLocalScope();
+                scope, getScopeForMemberDeclarationResolution().asJetScope());
+        return asJetLocalScope(chainedScope);
     }
 
 

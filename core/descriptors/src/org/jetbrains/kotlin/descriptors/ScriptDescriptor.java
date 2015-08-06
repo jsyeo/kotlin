@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.descriptors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.descriptors.impl.ScriptCodeDescriptor;
 import org.jetbrains.kotlin.name.Name;
+import org.jetbrains.kotlin.resolve.scopes.JetLocalScope;
 import org.jetbrains.kotlin.resolve.scopes.JetScope;
 
 public interface ScriptDescriptor extends DeclarationDescriptorNonRoot {
@@ -37,7 +38,7 @@ public interface ScriptDescriptor extends DeclarationDescriptorNonRoot {
     ClassDescriptor getClassDescriptor();
 
     @NotNull
-    JetScope getScopeForBodyResolution();
+    JetLocalScope getScopeForBodyResolution();
 
     @NotNull
     PropertyDescriptor getScriptResultProperty();
