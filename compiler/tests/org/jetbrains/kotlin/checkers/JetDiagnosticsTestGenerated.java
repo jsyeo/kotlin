@@ -14662,6 +14662,24 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                     String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/thisAndSuper/unqualifiedSuper/unqualifiedSuperWithUnresolvedBase.kt");
                     doTest(fileName);
                 }
+
+                @TestMetadata("withMethodOfAnyImplementedInSuperInterface.kt")
+                public void testWithMethodOfAnyImplementedInSuperInterface() throws Exception {
+                    String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/thisAndSuper/unqualifiedSuper/withMethodOfAnyImplementedInSuperInterface.kt");
+                    doTest(fileName);
+                }
+
+                @TestMetadata("withMethodOfAnyOverridenInInterface.kt")
+                public void testWithMethodOfAnyOverridenInInterface() throws Exception {
+                    String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/thisAndSuper/unqualifiedSuper/withMethodOfAnyOverridenInInterface.kt");
+                    doTest(fileName);
+                }
+
+                @TestMetadata("withMethodsOfAny.kt")
+                public void testWithMethodsOfAny() throws Exception {
+                    String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/thisAndSuper/unqualifiedSuper/withMethodsOfAny.kt");
+                    doTest(fileName);
+                }
             }
         }
 
