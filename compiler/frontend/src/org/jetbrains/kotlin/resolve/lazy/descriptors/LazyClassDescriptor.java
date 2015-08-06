@@ -88,7 +88,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 
     private final LazyClassMemberScope unsubstitutedMemberScope;
 
-    private final NotNullLazyValue<JetScope> scopeForPropertyInitializerResolution;
+    private final NotNullLazyValue<JetLocalScope> scopeForPropertyInitializerResolution;
 
     private final NullableLazyValue<Void> forceResolveAllContents;
     private final boolean isCompanionObject;
@@ -167,7 +167,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
                     ) {
                         @NotNull
                         @Override
-                        public JetScope getScope() {
+                        public JetLocalScope getScope() {
                             return getOuterScope();
                         }
                     },
@@ -192,7 +192,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
                     ) {
                         @NotNull
                         @Override
-                        public JetScope getScope() {
+                        public JetLocalScope getScope() {
                             return getScopeForMemberDeclarationResolution();
                         }
                     },
@@ -212,9 +212,9 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
                 return computeCompanionObjectDescriptor(companionObject);
             }
         });
-        this.scopeForPropertyInitializerResolution = storageManager.createLazyValue(new Function0<JetScope>() {
+        this.scopeForPropertyInitializerResolution = storageManager.createLazyValue(new Function0<JetLocalScope>() {
             @Override
-            public JetScope invoke() {
+            public JetLocalScope invoke() {
                 return computeScopeForPropertyInitializerResolution();
             }
         });
@@ -226,9 +226,9 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
             }
         }, null);
 
-        this.resolutionScopesSupport = new ClassResolutionScopesSupport(this, storageManager, new Function0<JetScope>() {
+        this.resolutionScopesSupport = new ClassResolutionScopesSupport(this, storageManager, new Function0<JetLocalScope>() {
             @Override
-            public JetScope invoke() {
+            public JetLocalScope invoke() {
                 return getOuterScope();
             }
         });
@@ -251,24 +251,24 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 
     @Override
     @NotNull
-    public JetScope getScopeForClassHeaderResolution() {
+    public JetLocalScope getScopeForClassHeaderResolution() {
         return resolutionScopesSupport.getScopeForClassHeaderResolution();
     }
 
     @NotNull
-    protected JetScope getOuterScope() {
+    protected JetLocalScope getOuterScope() {
         return c.getDeclarationScopeProvider().getResolutionScopeForDeclaration(declarationProvider.getOwnerInfo().getScopeAnchor());
     }
 
     @Override
     @NotNull
-    public JetScope getScopeForMemberDeclarationResolution() {
+    public JetLocalScope getScopeForMemberDeclarationResolution() {
         return resolutionScopesSupport.getScopeForMemberDeclarationResolution();
     }
 
     @Override
     @NotNull
-    public JetScope getScopeForInitializerResolution() {
+    public JetLocalScope getScopeForInitializerResolution() {
         return scopeForPropertyInitializerResolution.invoke();
     }
 
@@ -289,7 +289,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     }
 
     @NotNull
-    private JetScope computeScopeForPropertyInitializerResolution() {
+    private JetLocalScope computeScopeForPropertyInitializerResolution() {
         ConstructorDescriptor primaryConstructor = getUnsubstitutedPrimaryConstructor();
         if (primaryConstructor == null) return getScopeForMemberDeclarationResolution();
 
@@ -305,7 +305,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         return new ChainedScope(
                 primaryConstructor,
                 "ScopeForPropertyInitializerResolution: " + getName(),
-                scope, getScopeForMemberDeclarationResolution());
+                scope, getScopeForMemberDeclarationResolution().asJetScope()).asJetLocalScope();
     }
 
 

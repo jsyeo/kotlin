@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.storage.StorageManager
 class ClassResolutionScopesSupport(
         private val classDescriptor: ClassDescriptor,
         storageManager: StorageManager,
-        private val getOuterScope: () -> JetScope
+        private val getOuterScope: () -> JetLocalScope
 ) {
     private val staticScope = StaticScopeForKotlinClass(classDescriptor)
 
@@ -32,21 +32,21 @@ class ClassResolutionScopesSupport(
 
     fun getStaticScope(): JetScope = staticScope
 
-    fun getScopeForClassHeaderResolution(): JetScope = scopeForClassHeaderResolution()
+    fun getScopeForClassHeaderResolution(): JetLocalScope = scopeForClassHeaderResolution()
 
-    fun getScopeForMemberDeclarationResolution(): JetScope = scopeForMemberDeclarationResolution()
+    fun getScopeForMemberDeclarationResolution(): JetLocalScope = scopeForMemberDeclarationResolution()
 
-    private fun computeScopeForClassHeaderResolution(): JetScope {
+    private fun computeScopeForClassHeaderResolution(): JetLocalScope {
         val scope = WritableScopeImpl(JetScope.Empty, classDescriptor, RedeclarationHandler.DO_NOTHING, "Scope with type parameters for " + classDescriptor.getName())
         for (typeParameterDescriptor in classDescriptor.getTypeConstructor().getParameters()) {
             scope.addClassifierDescriptor(typeParameterDescriptor)
         }
         scope.changeLockLevel(WritableScope.LockLevel.READING)
 
-        return ChainedScope(classDescriptor, "ScopeForClassHeaderResolution: " + classDescriptor.getName(), scope, getOuterScope())
+        return ChainedScope(classDescriptor, "ScopeForClassHeaderResolution: " + classDescriptor.getName(), scope, getOuterScope().asJetScope()).asJetLocalScope() // todo remove? ChainedScope
     }
 
-    private fun computeScopeForMemberDeclarationResolution(): JetScope {
+    private fun computeScopeForMemberDeclarationResolution(): JetLocalScope {
         val thisScope = WritableScopeImpl(JetScope.Empty, classDescriptor, RedeclarationHandler.DO_NOTHING,
                                           "Scope with 'this' for " + classDescriptor.getName(), classDescriptor.getThisAsReceiverParameter(), classDescriptor)
         thisScope.changeLockLevel(WritableScope.LockLevel.READING)
@@ -56,9 +56,9 @@ class ClassResolutionScopesSupport(
                 "ScopeForMemberDeclarationResolution: " + classDescriptor.getName(),
                 thisScope,
                 classDescriptor.getUnsubstitutedMemberScope(),
-                getScopeForClassHeaderResolution(),
+                getScopeForClassHeaderResolution().asJetScope(),
                 getCompanionObjectScope(),
-                classDescriptor.getStaticScope())
+                classDescriptor.getStaticScope()).asJetLocalScope() // todo
     }
 
     private fun getCompanionObjectScope(): JetScope {

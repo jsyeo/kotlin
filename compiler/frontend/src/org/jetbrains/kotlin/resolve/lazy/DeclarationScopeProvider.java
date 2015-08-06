@@ -19,11 +19,12 @@ package org.jetbrains.kotlin.resolve.lazy;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo;
+import org.jetbrains.kotlin.resolve.scopes.JetLocalScope;
 import org.jetbrains.kotlin.resolve.scopes.JetScope;
 
 public interface DeclarationScopeProvider {
     @NotNull
-    JetScope getResolutionScopeForDeclaration(@NotNull PsiElement elementOfDeclaration);
+    JetLocalScope getResolutionScopeForDeclaration(@NotNull PsiElement elementOfDeclaration);
 
     @NotNull
     DataFlowInfo getOuterDataFlowInfoForDeclaration(@NotNull PsiElement elementOfDeclaration);
