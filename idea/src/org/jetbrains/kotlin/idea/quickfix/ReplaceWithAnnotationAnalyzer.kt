@@ -170,21 +170,21 @@ object ReplaceWithAnnotationAnalyzer {
                 descriptor.memberScope
 
             is ClassDescriptorWithResolutionScopes ->
-                descriptor.getScopeForMemberDeclarationResolution()
+                descriptor.getScopeForMemberDeclarationResolution().asJetScope()
 
             is ClassDescriptor -> {
-                val outerScope = getResolutionScope(descriptor.getContainingDeclaration())
-                ClassResolutionScopesSupport(descriptor, LockBasedStorageManager.NO_LOCKS, { outerScope }).getScopeForMemberDeclarationResolution()
+                val outerScope = getResolutionScope(descriptor.getContainingDeclaration()).asJetLocalScope()
+                ClassResolutionScopesSupport(descriptor, LockBasedStorageManager.NO_LOCKS, { outerScope }).getScopeForMemberDeclarationResolution().asJetScope()
             }
 
             is FunctionDescriptor ->
-                FunctionDescriptorUtil.getFunctionInnerScope(getResolutionScope(descriptor.getContainingDeclaration()),
-                                                             descriptor, RedeclarationHandler.DO_NOTHING)
+                FunctionDescriptorUtil.getFunctionInnerScope(getResolutionScope(descriptor.getContainingDeclaration()).asJetLocalScope(),
+                                                             descriptor, RedeclarationHandler.DO_NOTHING).asJetScope()
 
             is PropertyDescriptor ->
                 JetScopeUtils.getPropertyDeclarationInnerScope(descriptor,
-                                                               getResolutionScope(descriptor.getContainingDeclaration()),
-                                                               RedeclarationHandler.DO_NOTHING)
+                                                               getResolutionScope(descriptor.getContainingDeclaration()).asJetLocalScope(),
+                                                               RedeclarationHandler.DO_NOTHING).asJetScope()
             is LocalVariableDescriptor -> {
                 val declaration = DescriptorToSourceUtils.descriptorToDeclaration(descriptor) as JetDeclaration
                 declaration.analyze()[BindingContext.RESOLUTION_SCOPE, declaration]!!

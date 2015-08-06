@@ -88,7 +88,7 @@ public fun PsiElement.getResolutionScope(bindingContext: BindingContext, resolut
         if (parent is JetClassBody) {
             val classDescriptor = bindingContext[BindingContext.CLASS, parent.getParent()] as? ClassDescriptorWithResolutionScopes
             if (classDescriptor != null) {
-                return classDescriptor.getScopeForMemberDeclarationResolution()
+                return classDescriptor.getScopeForMemberDeclarationResolution().asJetScope()
             }
         }
 

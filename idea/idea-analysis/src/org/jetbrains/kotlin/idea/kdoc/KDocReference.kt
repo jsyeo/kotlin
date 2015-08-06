@@ -155,19 +155,19 @@ public fun getResolutionScope(resolutionFacade: ResolutionFacade, descriptor: De
             descriptor.memberScope
 
         is ClassDescriptorWithResolutionScopes ->
-                descriptor.getScopeForMemberDeclarationResolution()
+                descriptor.getScopeForMemberDeclarationResolution().asJetScope()
 
         is ClassDescriptor ->
             getClassInnerScope(getOuterScope(descriptor, resolutionFacade), descriptor)
 
         is FunctionDescriptor ->
-            FunctionDescriptorUtil.getFunctionInnerScope(getOuterScope(descriptor, resolutionFacade),
-                                                         descriptor, RedeclarationHandler.DO_NOTHING)
+            FunctionDescriptorUtil.getFunctionInnerScope(getOuterScope(descriptor, resolutionFacade).asJetLocalScope(),
+                                                         descriptor, RedeclarationHandler.DO_NOTHING).asJetScope()
 
         is PropertyDescriptor ->
             JetScopeUtils.getPropertyDeclarationInnerScope(descriptor,
-                                                           getOuterScope(descriptor, resolutionFacade),
-                                                           RedeclarationHandler.DO_NOTHING)
+                                                           getOuterScope(descriptor, resolutionFacade).asJetLocalScope(),
+                                                           RedeclarationHandler.DO_NOTHING).asJetScope()
 
         is DeclarationDescriptorNonRoot ->
             getOuterScope(descriptor, resolutionFacade)
