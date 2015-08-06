@@ -90,6 +90,14 @@ public interface JetScope {
     }
 }
 
+public interface JetLocalScope {
+    val containingDeclaration: DeclarationDescriptor
+
+    val parentScope: JetLocalScope?
+
+    fun asJetScope(): JetScope
+}
+
 /**
  * The same as getDescriptors(kindFilter, nameFilter) but the result is guaranteed to be filtered by kind and name.
  */

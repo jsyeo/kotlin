@@ -21,8 +21,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.resolve.BindingTrace;
 import org.jetbrains.kotlin.resolve.StatementFilter;
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker;
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo;
+import org.jetbrains.kotlin.resolve.scopes.JetLocalScope;
 import org.jetbrains.kotlin.resolve.scopes.JetScope;
 import org.jetbrains.kotlin.types.JetType;
 import org.jetbrains.kotlin.types.TypeUtils;
@@ -37,7 +37,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
     @NotNull
     public final BindingTrace trace;
     @NotNull
-    public final JetScope scope;
+    public final JetLocalScope scope;
     @NotNull
     public final JetType expectedType;
     @NotNull
@@ -60,7 +60,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 
     protected ResolutionContext(
             @NotNull BindingTrace trace,
-            @NotNull JetScope scope,
+            @NotNull JetLocalScope scope,
             @NotNull JetType expectedType,
             @NotNull DataFlowInfo dataFlowInfo,
             @NotNull ContextDependency contextDependency,
@@ -86,7 +86,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
 
     protected abstract Context create(
             @NotNull BindingTrace trace,
-            @NotNull JetScope scope,
+            @NotNull JetLocalScope scope,
             @NotNull DataFlowInfo dataFlowInfo,
             @NotNull JetType expectedType,
             @NotNull ContextDependency contextDependency,
@@ -125,7 +125,7 @@ public abstract class ResolutionContext<Context extends ResolutionContext<Contex
     }
 
     @NotNull
-    public Context replaceScope(@NotNull JetScope newScope) {
+    public Context replaceScope(@NotNull JetLocalScope newScope) {
         if (newScope == scope) return self();
         return create(trace, newScope, dataFlowInfo, expectedType, contextDependency, resolutionResultsCache, statementFilter,
                       collectAllCandidates, insideCallChain);
