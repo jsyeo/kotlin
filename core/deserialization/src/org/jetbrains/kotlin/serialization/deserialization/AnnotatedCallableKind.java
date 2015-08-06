@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.serialization.deserialization;
 public enum AnnotatedCallableKind {
     FUNCTION,
     PROPERTY,
-    PROPERTY_SYNTHETIC,
+    PROPERTY_SYNTHETIC_FUNCTION,
     PROPERTY_FIELD,
     PROPERTY_GETTER,
     PROPERTY_SETTER

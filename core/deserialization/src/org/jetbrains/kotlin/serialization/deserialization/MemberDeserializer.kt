@@ -195,7 +195,7 @@ public class MemberDeserializer(private val c: DeserializationContext) {
                 ).map(mapper)
             }
 
-            loadAnnotations(AnnotatedCallableKind.PROPERTY_SYNTHETIC) { AnnotationWithTarget(it, null) }
+            loadAnnotations(AnnotatedCallableKind.PROPERTY_SYNTHETIC_FUNCTION) { AnnotationWithTarget(it, null) }
             loadAnnotations(AnnotatedCallableKind.PROPERTY_FIELD) { AnnotationWithTarget(it, AnnotationUseSiteTarget.FIELD) }
 
             annotations

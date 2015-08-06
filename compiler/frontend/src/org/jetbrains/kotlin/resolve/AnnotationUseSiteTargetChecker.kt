@@ -117,14 +117,14 @@ public object AnnotationUseSiteTargetChecker {
             annotationWithTarget: AnnotationWithTarget): PropertyDescriptor? {
         if (descriptor is PropertyDescriptor) {
             return descriptor
-        }
+        }/*
         else if (descriptor is ValueParameterDescriptor) {
             val jetParameter = DescriptorToSourceUtils.descriptorToDeclaration(descriptor) as? JetParameter
             if (jetParameter != null && jetParameter.hasValOrVar()) {
                 val propertyDescriptor = bindingContext[BindingContext.VALUE_PARAMETER_AS_PROPERTY, descriptor]
                 if (propertyDescriptor != null) return propertyDescriptor
             }
-        }
+        }*/
 
         report(annotationWithTarget, INAPPLICABLE_TARGET_ON_PROPERTY)
         return null

@@ -183,11 +183,11 @@ public abstract class AbstractBinaryClassAnnotationAndConstantLoader<A : Any, C 
         val classKind = Flags.CLASS_KIND[classProto.getFlags()]
         val classId = nameResolver.getClassId(classProto.getFqName())
         if (classKind == ProtoBuf.Class.Kind.CLASS_OBJECT && isStaticFieldInOuter(proto)
-                && annotatedCallableKind != AnnotatedCallableKind.PROPERTY_SYNTHETIC) {
+                && annotatedCallableKind != AnnotatedCallableKind.PROPERTY_SYNTHETIC_FUNCTION) {
             // Backing fields of properties of a companion object are generated in the outer class
             return kotlinClassFinder.findKotlinClass(classId.getOuterClassId())
         }
-        else if (classKind == ProtoBuf.Class.Kind.TRAIT && annotatedCallableKind == AnnotatedCallableKind.PROPERTY_SYNTHETIC) {
+        else if (classKind == ProtoBuf.Class.Kind.TRAIT && annotatedCallableKind == AnnotatedCallableKind.PROPERTY_SYNTHETIC_FUNCTION) {
             if (proto.hasExtension(implClassName)) {
                 val parentPackageFqName = classId.getPackageFqName()
                 val tImplName = nameResolver.getName(proto.getExtension(implClassName))
@@ -314,7 +314,7 @@ private fun getCallableSignature(
         }
         AnnotatedCallableKind.PROPERTY -> return getPropertySignature(true, true)
         AnnotatedCallableKind.PROPERTY_FIELD -> return getPropertySignature(handleField = true)
-        AnnotatedCallableKind.PROPERTY_SYNTHETIC -> return getPropertySignature(handleSynthetic = true)
+        AnnotatedCallableKind.PROPERTY_SYNTHETIC_FUNCTION -> return getPropertySignature(handleSynthetic = true)
     }
     return null
 }
