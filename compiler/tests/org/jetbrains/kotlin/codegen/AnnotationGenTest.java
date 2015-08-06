@@ -54,7 +54,7 @@ public class AnnotationGenTest extends CodegenTestCase {
     }
 
     public void testPropField() throws Exception {
-        ClassLoader loader = loadFileGetClassLoader("@[Deprecated] var x = 0");
+        ClassLoader loader = loadFileGetClassLoader("@field:[Deprecated] var x = 0");
         Class<?> packageClass = getPackageClass(loader);
         assertNull(packageClass.getDeclaredMethod("getX").getAnnotation(Deprecated.class));
         assertNull(packageClass.getDeclaredMethod("setX", int.class).getAnnotation(Deprecated.class));
@@ -152,7 +152,7 @@ public class AnnotationGenTest extends CodegenTestCase {
     }
 
     public void testPropFieldInConstructor() throws NoSuchFieldException, NoSuchMethodException {
-        loadText("class A (@[Deprecated] var x: Int) {}");
+        loadText("class A (@field:Deprecated @param:Deprecated var x: Int) {}");
         Class<?> aClass = generateClass("A");
         Constructor constructor = aClass.getDeclaredConstructor(int.class);
         assertNotNull(constructor);

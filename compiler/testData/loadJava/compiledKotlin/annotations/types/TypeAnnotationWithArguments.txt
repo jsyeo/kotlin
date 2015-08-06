@@ -10,5 +10,5 @@ kotlin.annotation.target(allowedTargets = {AnnotationTarget.TYPE}) kotlin.annota
 
 internal final class TypeAnnotationWithArguments {
     /*primary*/ public constructor TypeAnnotationWithArguments()
-    internal final fun foo(/*0*/ param: @[test.Ann(x = "param", y = 3.14.toDouble())] kotlin.IntRange): @[test.Ann(x = "fun", y = 2.72.toDouble())] kotlin.Unit
+    internal final fun foo(/*0*/ param: @test.Ann(x = "param", y = 3.14.toDouble()) kotlin.IntRange): @test.Ann(x = "fun", y = 2.72.toDouble()) kotlin.Unit
 }

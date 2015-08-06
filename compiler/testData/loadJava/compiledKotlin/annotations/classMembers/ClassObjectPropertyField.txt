@@ -9,8 +9,11 @@ internal final class Class {
 
     public companion object Companion {
         /*primary*/ private constructor Companion()
-        test.Anno() internal final var property: kotlin.Int
+        @field:test.Anno() internal final var property: kotlin.Int
             internal final fun <get-property>(): kotlin.Int
             internal final fun <set-property>(/*0*/ <set-?>: kotlin.Int): kotlin.Unit
+        test.Anno() internal final var property2: kotlin.Int
+            internal final fun <get-property2>(): kotlin.Int
+            internal final fun <set-property2>(/*0*/ <set-?>: kotlin.Int): kotlin.Unit
     }
 }
