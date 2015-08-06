@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.resolve.PossiblyBareType.type
 import org.jetbrains.kotlin.resolve.TypeResolver.FlexibleTypeCapabilitiesProvider
 import org.jetbrains.kotlin.resolve.lazy.ForceResolveUtil
 import org.jetbrains.kotlin.resolve.lazy.LazyEntity
+import org.jetbrains.kotlin.resolve.scopes.JetLocalScope
 import org.jetbrains.kotlin.resolve.scopes.JetScope
 import org.jetbrains.kotlin.resolve.scopes.LazyScopeAdapter
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
@@ -59,7 +60,7 @@ public class TypeResolver(
         }
     }
 
-    public fun resolveType(scope: JetScope, typeReference: JetTypeReference, trace: BindingTrace, checkBounds: Boolean): JetType {
+    public fun resolveType(scope: JetLocalScope, typeReference: JetTypeReference, trace: BindingTrace, checkBounds: Boolean): JetType {
         // bare types are not allowed
         return resolveType(TypeResolutionContext(scope, trace, checkBounds, false), typeReference)
     }

@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.resolve.*;
 import org.jetbrains.kotlin.resolve.calls.context.ContextDependency;
 import org.jetbrains.kotlin.resolve.calls.context.ResolutionContext;
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo;
-import org.jetbrains.kotlin.resolve.scopes.JetScope;
+import org.jetbrains.kotlin.resolve.scopes.JetLocalScope;
 import org.jetbrains.kotlin.resolve.scopes.WritableScope;
 import org.jetbrains.kotlin.resolve.scopes.WritableScopeImpl;
 import org.jetbrains.kotlin.types.ErrorUtils;
@@ -70,7 +70,7 @@ public class ExpressionTypingServices {
 
     @NotNull
     public JetType safeGetType(
-            @NotNull JetScope scope,
+            @NotNull JetLocalScope scope,
             @NotNull JetExpression expression,
             @NotNull JetType expectedType,
             @NotNull DataFlowInfo dataFlowInfo,
@@ -82,7 +82,7 @@ public class ExpressionTypingServices {
 
     @NotNull
     public JetTypeInfo getTypeInfo(
-            @NotNull JetScope scope,
+            @NotNull JetLocalScope scope,
             @NotNull JetExpression expression,
             @NotNull JetType expectedType,
             @NotNull DataFlowInfo dataFlowInfo,
@@ -101,7 +101,7 @@ public class ExpressionTypingServices {
 
     @Nullable
     public JetType getType(
-            @NotNull JetScope scope,
+            @NotNull JetLocalScope scope,
             @NotNull JetExpression expression,
             @NotNull JetType expectedType,
             @NotNull DataFlowInfo dataFlowInfo,
@@ -113,7 +113,7 @@ public class ExpressionTypingServices {
     /////////////////////////////////////////////////////////
 
     public void checkFunctionReturnType(
-            @NotNull JetScope functionInnerScope,
+            @NotNull JetLocalScope functionInnerScope,
             @NotNull JetDeclarationWithBody function,
             @NotNull FunctionDescriptor functionDescriptor,
             @NotNull DataFlowInfo dataFlowInfo,
@@ -192,14 +192,14 @@ public class ExpressionTypingServices {
     @NotNull
     public JetType getBodyExpressionType(
             @NotNull BindingTrace trace,
-            @NotNull JetScope outerScope,
+            @NotNull JetLocalScope outerScope,
             @NotNull DataFlowInfo dataFlowInfo,
             @NotNull JetDeclarationWithBody function,
             @NotNull FunctionDescriptor functionDescriptor
     ) {
         JetExpression bodyExpression = function.getBodyExpression();
         assert bodyExpression != null;
-        JetScope functionInnerScope = FunctionDescriptorUtil.getFunctionInnerScope(outerScope, functionDescriptor, trace);
+        JetLocalScope functionInnerScope = FunctionDescriptorUtil.getFunctionInnerScope(outerScope, functionDescriptor, trace);
 
         ExpressionTypingContext context = ExpressionTypingContext.newContext(
                 trace, functionInnerScope, dataFlowInfo, NO_EXPECTED_TYPE

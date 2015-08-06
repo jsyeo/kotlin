@@ -39,7 +39,7 @@ public final class JetScopeUtils {
     private JetScopeUtils() {}
 
     @NotNull
-    public static List<ReceiverValue> getImplicitReceiversHierarchyValues(@NotNull JetScope scope) {
+    public static List<ReceiverValue> getImplicitReceiversHierarchyValues(@NotNull JetLocalScope scope) {
         Collection<ReceiverParameterDescriptor> hierarchy = scope.getImplicitReceiversHierarchy();
 
         return Lists.newArrayList(

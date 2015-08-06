@@ -88,10 +88,23 @@ public interface JetScope {
     companion object {
         public val ALL_NAME_FILTER: (Name) -> Boolean = { true }
     }
+
+    fun asJetLocalScope(): JetLocalScope = object : JetLocalScope {
+        override fun getImplicitReceiversHierarchy() = this@JetScope.getImplicitReceiversHierarchy()
+
+        public override fun getContainingDeclaration() = this@JetScope.getContainingDeclaration()
+
+        override val parentScope: JetLocalScope?
+            get() = null
+
+        override fun asJetScope(): JetScope = this@JetScope
+    }
 }
 
 public interface JetLocalScope {
-    val containingDeclaration: DeclarationDescriptor
+    public fun getContainingDeclaration(): DeclarationDescriptor
+
+    public fun getImplicitReceiversHierarchy(): List<ReceiverParameterDescriptor>
 
     val parentScope: JetLocalScope?
 

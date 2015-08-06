@@ -229,19 +229,19 @@ public class MutableClassDescriptor extends ClassDescriptorBase implements Class
 
     @Override
     @NotNull
-    public JetScope getScopeForClassHeaderResolution() {
+    public JetLocalScope getScopeForClassHeaderResolution() {
         return scopeForSupertypeResolution;
     }
 
     @Override
     @NotNull
-    public JetScope getScopeForMemberDeclarationResolution() {
+    public JetLocalScope getScopeForMemberDeclarationResolution() {
         return scopeForMemberResolution;
     }
 
     @Override
     @NotNull
-    public JetScope getScopeForInitializerResolution() {
+    public JetLocalScope getScopeForInitializerResolution() {
         if (scopeForInitializers == null) {
             throw new IllegalStateException("Scope for initializers queried before the primary constructor is set");
         }

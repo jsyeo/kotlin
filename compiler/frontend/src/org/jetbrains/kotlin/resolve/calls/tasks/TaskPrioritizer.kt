@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.resolve.calls.tasks.collectors.CallableDescriptorCol
 import org.jetbrains.kotlin.resolve.calls.tasks.collectors.CallableDescriptorCollectors
 import org.jetbrains.kotlin.resolve.calls.tasks.collectors.filtered
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
-import org.jetbrains.kotlin.resolve.scopes.JetScope
+import org.jetbrains.kotlin.resolve.scopes.JetLocalScope
 import org.jetbrains.kotlin.resolve.scopes.JetScopeUtils
 import org.jetbrains.kotlin.resolve.scopes.receivers.QualifierReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
@@ -77,7 +77,7 @@ public class TaskPrioritizer(private val storageManager: StorageManager) {
 
         if (explicitReceiver is QualifierReceiver) {
             val qualifierReceiver: QualifierReceiver = explicitReceiver
-            doComputeTasks(NO_RECEIVER, taskPrioritizerContext.replaceScope(qualifierReceiver.getNestedClassesAndPackageMembersScope()))
+            doComputeTasks(NO_RECEIVER, taskPrioritizerContext.replaceScope(qualifierReceiver.getNestedClassesAndPackageMembersScope().asJetLocalScope()))
             computeTasksForClassObjectReceiver(qualifierReceiver, taskPrioritizerContext)
         }
         else {
@@ -174,7 +174,7 @@ public class TaskPrioritizer(private val storageManager: StorageManager) {
                 convertWithImpliedThis(
                         c.scope,
                         explicitReceiver.value,
-                        callableDescriptorCollector.getExtensionsByName(c.scope, c.name, explicitReceiver.types, c.context.trace),
+                        callableDescriptorCollector.getExtensionsByName(c.scope.asJetScope(), c.name, explicitReceiver.types, c.context.trace),
                         createKind(EXTENSION_RECEIVER, isExplicit),
                         c.context.call
                 )
@@ -261,7 +261,7 @@ public class TaskPrioritizer(private val storageManager: StorageManager) {
 
             val members = convertWithImpliedThisAndNoReceiver(
                     c.scope,
-                    callableDescriptorCollector.getNonExtensionsByName(c.scope, c.name, c.context.trace),
+                    callableDescriptorCollector.getNonExtensionsByName(c.scope.asJetScope(), c.name, c.context.trace),
                     c.context.call
             )
 
@@ -369,7 +369,7 @@ public class TaskPrioritizer(private val storageManager: StorageManager) {
     }
 
     public fun <D : CallableDescriptor> convertWithImpliedThisAndNoReceiver(
-            scope: JetScope,
+            scope: JetLocalScope,
             descriptors: Collection<D>,
             call: Call
     ): Collection<ResolutionCandidate<D>> {
@@ -377,7 +377,7 @@ public class TaskPrioritizer(private val storageManager: StorageManager) {
     }
 
     public fun <D : CallableDescriptor> convertWithImpliedThis(
-            scope: JetScope,
+            scope: JetLocalScope,
             receiverParameter: ReceiverValue,
             descriptors: Collection<D>,
             receiverKind: ExplicitReceiverKind,
@@ -396,7 +396,7 @@ public class TaskPrioritizer(private val storageManager: StorageManager) {
     }
 
     private fun <D : CallableDescriptor> setImpliedThis(
-            scope: JetScope,
+            scope: JetLocalScope,
             candidate: ResolutionCandidate<D>
     ): Boolean {
         val dispatchReceiver = candidate.getDescriptor().getDispatchReceiverParameter()
@@ -456,10 +456,10 @@ public class TaskPrioritizer(private val storageManager: StorageManager) {
             val name: Name,
             val result: ResolutionTaskHolder<D, F>,
             val context: BasicCallResolutionContext,
-            val scope: JetScope,
+            val scope: JetLocalScope,
             val callableDescriptorCollectors: CallableDescriptorCollectors<D>
     ) {
-        fun replaceScope(newScope: JetScope): TaskPrioritizerContext<D, F> {
+        fun replaceScope(newScope: JetLocalScope): TaskPrioritizerContext<D, F> {
             return TaskPrioritizerContext(name, result, context, newScope, callableDescriptorCollectors)
         }
 
