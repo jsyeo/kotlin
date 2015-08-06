@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.Annotated;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget;
+import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget;
 import org.jetbrains.kotlin.jvm.RuntimeAssertionInfo;
 import org.jetbrains.kotlin.load.kotlin.nativeDeclarations.NativeDeclarationsPackage;
 import org.jetbrains.kotlin.name.FqName;
@@ -227,7 +228,7 @@ public class FunctionCodegen {
             Annotated annotated = new AnnotatedWithAdditionalAnnotations(
                     null, ((PropertyAccessorDescriptor) functionDescriptor).getCorrespondingProperty(), false);
 
-            annotationCodegen.genAnnotations(annotated, asmMethod.getReturnType(), target);
+            annotationCodegen.genAnnotations(annotated, asmMethod.getReturnType(), target, null);
         }
 
         annotationCodegen.genAnnotations(functionDescriptor, asmMethod.getReturnType());
@@ -257,11 +258,13 @@ public class FunctionCodegen {
                 if (functionDescriptor instanceof PropertySetterDescriptor) {
                     PropertyDescriptor propertyDescriptor = ((PropertySetterDescriptor) functionDescriptor).getCorrespondingProperty();
                     Annotated targetedAnnotations = new AnnotatedWithAdditionalAnnotations(null, propertyDescriptor, false);
-                    annotationCodegen.genAnnotations(targetedAnnotations, parameterSignature.getAsmType(), SETTER_PARAMETER);
+                    annotationCodegen.genAnnotations(targetedAnnotations, parameterSignature.getAsmType(),
+                                                     SETTER_PARAMETER, KotlinTarget.VALUE_PARAMETER);
                 }
 
                 if (functionDescriptor instanceof ConstructorDescriptor) {
-                    annotationCodegen.genAnnotations(parameter, parameterSignature.getAsmType(), CONSTRUCTOR_PARAMETER);
+                    annotationCodegen.genAnnotations(parameter, parameterSignature.getAsmType(),
+                                                     CONSTRUCTOR_PARAMETER, KotlinTarget.VALUE_PARAMETER);
                 }
                 else {
                     annotationCodegen.genAnnotations(parameter, parameterSignature.getAsmType());
@@ -274,7 +277,8 @@ public class FunctionCodegen {
                 if (receiver != null) {
                     AnnotationCodegen annotationCodegen = AnnotationCodegen.forParameter(i, mv, typeMapper);
                     Annotated targetedAnnotations = new AnnotatedWithAdditionalAnnotations(null, receiver.getType(), false);
-                    annotationCodegen.genAnnotations(targetedAnnotations, parameterSignature.getAsmType(), RECEIVER);
+                    annotationCodegen.genAnnotations(
+                            targetedAnnotations, parameterSignature.getAsmType(), RECEIVER, KotlinTarget.VALUE_PARAMETER);
                 }
             }
         }

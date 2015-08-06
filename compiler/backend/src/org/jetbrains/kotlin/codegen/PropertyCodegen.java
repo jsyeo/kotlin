@@ -26,8 +26,8 @@ import org.jetbrains.kotlin.codegen.state.GenerationState;
 import org.jetbrains.kotlin.codegen.state.JetTypeMapper;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.Annotated;
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget;
+import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget;
 import org.jetbrains.kotlin.load.java.JvmAbi;
 import org.jetbrains.kotlin.psi.*;
 import org.jetbrains.kotlin.psi.psiUtil.PsiUtilPackage;
@@ -232,7 +232,8 @@ public class PropertyCodegen {
         if (!isTrait(context.getContextDescriptor()) || kind == OwnerKind.TRAIT_IMPL) {
             int flags = ACC_DEPRECATED | ACC_FINAL | ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC;
             MethodVisitor mv = v.newMethod(OtherOrigin(descriptor), flags, name, desc, null, null);
-            AnnotationCodegen.forMethod(mv, typeMapper).genAnnotations(descriptor, Type.VOID_TYPE, AnnotationUseSiteTarget.PROPERTY);
+            AnnotationCodegen.forMethod(mv, typeMapper).genAnnotations(descriptor, Type.VOID_TYPE,
+                                                                       AnnotationUseSiteTarget.PROPERTY, KotlinTarget.PROPERTY);
             mv.visitCode();
             mv.visitInsn(Opcodes.RETURN);
             mv.visitEnd();
@@ -308,7 +309,8 @@ public class PropertyCodegen {
                                                 typeMapper.mapFieldSignature(jetType), defaultValue);
 
         Annotated onlyFieldAnnotations = new AnnotatedWithAdditionalAnnotations(null, propertyDescriptor, true);
-        AnnotationCodegen.forField(fv, typeMapper).genAnnotations(onlyFieldAnnotations, type, AnnotationUseSiteTarget.FIELD);
+        AnnotationCodegen.forField(fv, typeMapper).genAnnotations(onlyFieldAnnotations, type,
+                                                                  AnnotationUseSiteTarget.FIELD, KotlinTarget.FIELD);
     }
 
     private void generatePropertyDelegateAccess(JetProperty p, PropertyDescriptor propertyDescriptor) {

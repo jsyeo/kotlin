@@ -82,10 +82,15 @@ public abstract class AnnotationCodegen {
      * @param returnType can be null if not applicable (e.g. {@code annotated} is a class)
      */
     public void genAnnotations(@Nullable Annotated annotated, @Nullable Type returnType) {
-        genAnnotations(annotated, returnType, null);
+        genAnnotations(annotated, returnType, null, null);
     }
 
-    public void genAnnotations(@Nullable Annotated annotated, @Nullable Type returnType, @Nullable AnnotationUseSiteTarget target) {
+    public void genAnnotations(
+            @Nullable Annotated annotated,
+            @Nullable Type returnType,
+            @Nullable AnnotationUseSiteTarget target,
+            @Nullable KotlinTarget declarationSiteTarget
+    ) {
         if (annotated == null) {
             return;
         }
@@ -106,6 +111,10 @@ public abstract class AnnotationCodegen {
         }
 
         for (AnnotationDescriptor annotation : annotations) {
+            if (declarationSiteTarget != null) {
+                if (!AnnotationChecker.Companion.applicableTargetSet(annotation).contains(declarationSiteTarget)) continue;
+            }
+
             String descriptor = genAnnotation(annotation);
             if (descriptor != null) {
                 annotationDescriptorsAlreadyPresent.add(descriptor);
