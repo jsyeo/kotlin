@@ -182,11 +182,12 @@ public abstract class AbstractBinaryClassAnnotationAndConstantLoader<A : Any, C 
         val classProto = container.classProto!!
         val classKind = Flags.CLASS_KIND[classProto.getFlags()]
         val classId = nameResolver.getClassId(classProto.getFqName())
-        if (classKind == ProtoBuf.Class.Kind.CLASS_OBJECT && isStaticFieldInOuter(proto)) {
+        if (classKind == ProtoBuf.Class.Kind.CLASS_OBJECT && isStaticFieldInOuter(proto)
+                && annotatedCallableKind != AnnotatedCallableKind.PROPERTY_SYNTHETIC) {
             // Backing fields of properties of a companion object are generated in the outer class
             return kotlinClassFinder.findKotlinClass(classId.getOuterClassId())
         }
-        else if (classKind == ProtoBuf.Class.Kind.TRAIT && annotatedCallableKind == AnnotatedCallableKind.PROPERTY) {
+        else if (classKind == ProtoBuf.Class.Kind.TRAIT && annotatedCallableKind == AnnotatedCallableKind.PROPERTY_SYNTHETIC) {
             if (proto.hasExtension(implClassName)) {
                 val parentPackageFqName = classId.getPackageFqName()
                 val tImplName = nameResolver.getName(proto.getExtension(implClassName))
@@ -282,6 +283,25 @@ private fun getCallableSignature(
         kind: AnnotatedCallableKind
 ): MemberSignature? {
     val deserializer = SignatureDeserializer(nameResolver)
+
+    fun getPropertySignature(handleField: Boolean = false, handleSynthetic: Boolean = false): MemberSignature? {
+        if (!proto.hasExtension(propertySignature)) return null
+
+        val propertySignature = proto.getExtension(propertySignature)
+
+        if (handleField && propertySignature.hasField()) {
+            val field = propertySignature.getField()
+            val type = deserializer.typeDescriptor(field.getType())
+            val name = nameResolver.getName(field.getName())
+            return MemberSignature.fromFieldNameAndDesc(name, type)
+        }
+        else if (handleSynthetic && propertySignature.hasSyntheticMethod()) {
+            return deserializer.methodSignature(propertySignature.getSyntheticMethod())
+        }
+
+        return null
+    }
+
     when (kind) {
         AnnotatedCallableKind.FUNCTION -> if (proto.hasExtension(methodSignature)) {
             return deserializer.methodSignature(proto.getExtension(methodSignature))
@@ -292,19 +312,9 @@ private fun getCallableSignature(
         AnnotatedCallableKind.PROPERTY_SETTER -> if (proto.hasExtension(propertySignature)) {
             return deserializer.methodSignature(proto.getExtension(propertySignature).getSetter())
         }
-        AnnotatedCallableKind.PROPERTY -> if (proto.hasExtension(propertySignature)) {
-            val propertySignature = proto.getExtension(propertySignature)
-
-            if (propertySignature.hasField()) {
-                val field = propertySignature.getField()
-                val type = deserializer.typeDescriptor(field.getType())
-                val name = nameResolver.getName(field.getName())
-                return MemberSignature.fromFieldNameAndDesc(name, type)
-            }
-            else if (propertySignature.hasSyntheticMethod()) {
-                return deserializer.methodSignature(propertySignature.getSyntheticMethod())
-            }
-        }
+        AnnotatedCallableKind.PROPERTY -> return getPropertySignature(true, true)
+        AnnotatedCallableKind.PROPERTY_FIELD -> return getPropertySignature(handleField = true)
+        AnnotatedCallableKind.PROPERTY_SYNTHETIC -> return getPropertySignature(handleSynthetic = true)
     }
     return null
 }

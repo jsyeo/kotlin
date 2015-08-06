@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.serialization.deserialization
 
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationWithTarget
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -30,7 +31,6 @@ import org.jetbrains.kotlin.serialization.ProtoBuf.Callable.CallableKind.FUN
 import org.jetbrains.kotlin.serialization.ProtoBuf.Callable.CallableKind.VAL
 import org.jetbrains.kotlin.serialization.ProtoBuf.Callable.CallableKind.VAR
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.*
-import org.jetbrains.kotlin.utils.sure
 
 public class MemberDeserializer(private val c: DeserializationContext) {
     public fun loadCallable(proto: Callable): CallableMemberDescriptor {
@@ -47,7 +47,7 @@ public class MemberDeserializer(private val c: DeserializationContext) {
 
         val property = DeserializedPropertyDescriptor(
                 c.containingDeclaration, null,
-                getAnnotations(proto, flags, AnnotatedCallableKind.PROPERTY),
+                getPropertyAnnotations(proto),
                 modality(Flags.MODALITY.get(flags)),
                 visibility(Flags.VISIBILITY.get(flags)),
                 Flags.CALLABLE_KIND.get(flags) == Callable.CallableKind.VAR,
@@ -184,6 +184,24 @@ public class MemberDeserializer(private val c: DeserializationContext) {
         }
     }
 
+    private fun getPropertyAnnotations(proto: Callable): Annotations {
+        return DeserializedAnnotationsWithPossibleTargets(c.storageManager) {
+            val annotations = arrayListOf<AnnotationWithTarget>()
+            val container = c.containingDeclaration.asProtoContainer()
+
+            fun loadAnnotations(kind: AnnotatedCallableKind, mapper: (AnnotationDescriptor) -> AnnotationWithTarget) {
+                annotations += c.components.annotationAndConstantLoader.loadCallableAnnotations(
+                        container, proto, c.nameResolver, kind
+                ).map(mapper)
+            }
+
+            loadAnnotations(AnnotatedCallableKind.PROPERTY_SYNTHETIC) { AnnotationWithTarget(it, null) }
+            loadAnnotations(AnnotatedCallableKind.PROPERTY_FIELD) { AnnotationWithTarget(it, AnnotationUseSiteTarget.FIELD) }
+
+            annotations
+        }
+    }
+
     private fun getReceiverParameterAnnotations(
             proto: Callable,
             kind: AnnotatedCallableKind,
@@ -226,9 +244,6 @@ public class MemberDeserializer(private val c: DeserializationContext) {
             kind: AnnotatedCallableKind,
             valueParameter: Callable.ValueParameter
     ): Annotations {
-        if (!Flags.HAS_ANNOTATIONS.get(valueParameter.getFlags())) {
-            return Annotations.EMPTY
-        }
         return DeserializedAnnotations(c.storageManager) {
             c.components.annotationAndConstantLoader.loadValueParameterAnnotations(container, callable, c.nameResolver, kind, valueParameter)
         }
@@ -238,5 +253,10 @@ public class MemberDeserializer(private val c: DeserializationContext) {
         is PackageFragmentDescriptor -> ProtoContainer(null, fqName)
         is DeserializedClassDescriptor -> ProtoContainer(classProto, null)
         else -> error("Only members in classes or package fragments should be serialized: $this")
+    }
+
+    private companion object {
+        val CONSTRUCTOR_PARAMETER_ANNOTATION_MAPPER =
+                { a: AnnotationDescriptor -> AnnotationWithTarget(a, AnnotationUseSiteTarget.CONSTRUCTOR_PARAMETER) }
     }
 }
