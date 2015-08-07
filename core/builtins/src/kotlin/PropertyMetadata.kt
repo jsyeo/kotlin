@@ -29,4 +29,4 @@ public interface PropertyMetadata {
 /**
  * @suppress
  */
-public class PropertyMetadataImpl(override val name: String): PropertyMetadata
+public data class PropertyMetadataImpl(override val name: String): PropertyMetadata
