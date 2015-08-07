@@ -35,7 +35,7 @@ import kotlin.jvm.internal.DeclarationContainerImpl
 import kotlin.reflect.KCallable
 import kotlin.reflect.KotlinReflectionInternalError
 
-abstract class KCallableContainerImpl : DeclarationContainerImpl {
+abstract class KDeclarationContainerImpl : DeclarationContainerImpl {
     // Note: this is stored here on a soft reference to prevent GC from destroying the weak reference to it in the moduleByClassLoader cache
     val moduleData by ReflectProperties.lazySoft {
         jClass.getOrCreateModule()
@@ -65,7 +65,7 @@ abstract class KCallableContainerImpl : DeclarationContainerImpl {
             }
 
             override fun visitFunctionDescriptor(descriptor: FunctionDescriptor, data: Unit): KCallable<*>? {
-                return if (skipCallable(descriptor)) null else KFunctionImpl(this@KCallableContainerImpl, descriptor)
+                return if (skipCallable(descriptor)) null else KFunctionImpl(this@KDeclarationContainerImpl, descriptor)
             }
 
             override fun visitConstructorDescriptor(descriptor: ConstructorDescriptor, data: Unit): KCallable<*>? {
