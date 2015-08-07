@@ -25,11 +25,11 @@ public fun createContainer(id: String, init: StorageComponentContainer.() -> Uni
     return c
 }
 
-public inline fun <reified T> StorageComponentContainer.useImpl() {
+public inline fun <reified T : Any> StorageComponentContainer.useImpl() {
     registerSingleton(javaClass<T>())
 }
 
-public inline fun <reified T> StorageComponentContainer.get(): T {
+public inline fun <reified T : Any> StorageComponentContainer.get(): T {
     return resolve(javaClass<T>(), unknownContext)!!.getValue() as T
 }
 
@@ -37,6 +37,6 @@ public fun StorageComponentContainer.useInstance(instance: Any) {
     registerInstance(instance)
 }
 
-public inline fun <reified T> StorageComponentContainer.get(thisRef: Any?, desc: PropertyMetadata): T {
+public inline fun <reified T : Any> StorageComponentContainer.get(thisRef: Any?, desc: PropertyMetadata): T {
     return resolve(javaClass<T>())!!.getValue() as T
 }

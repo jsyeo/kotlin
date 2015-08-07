@@ -31,7 +31,8 @@ private class ReferenceTracker<Reference, RemoveCandidate : JsNode> {
         get() {
             return reachable
                         .filter { !it.value }
-                        .map { removableCandidates.get(it.key)!! }
+                        // TODO:
+                        .map { removableCandidates.get(it.getKey())!! }
         }
 
     public fun addCandidateForRemoval(reference: Reference, candidate: RemoveCandidate) {

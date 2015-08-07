@@ -35,13 +35,13 @@ public abstract class CreateFromUsageFactory<E : JetElement, D> : JetIntentionAc
     protected open fun createQuickFix(
             originalElementPointer: SmartPsiElementPointer<E>,
             diagnostic: Diagnostic,
-            quickFixDataFactory: (SmartPsiElementPointer<E>) -> D
+            quickFixDataFactory: (SmartPsiElementPointer<E>) -> D?
     ): QuickFixWithDelegateFactory? = null
 
     protected open fun createQuickFixes(
             originalElementPointer: SmartPsiElementPointer<E>,
             diagnostic: Diagnostic,
-            quickFixDataFactory: (SmartPsiElementPointer<E>) -> D
+            quickFixDataFactory: (SmartPsiElementPointer<E>) -> D?
     ): List<QuickFixWithDelegateFactory> = createQuickFix(originalElementPointer, diagnostic, quickFixDataFactory).singletonOrEmptyList()
 
     protected abstract fun createQuickFixData(element: E, diagnostic: Diagnostic): D

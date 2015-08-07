@@ -25,7 +25,8 @@ abstract class HasMetadata {
     }
 
     fun <T> setData(key: String, value: T) {
-        metadata[key] = value
+        // TODO: remove workaround
+        metadata.set<String, Any?>(key, value)
     }
 
     fun hasData(key: String): Boolean {

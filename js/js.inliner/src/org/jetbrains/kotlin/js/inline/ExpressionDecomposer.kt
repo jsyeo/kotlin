@@ -417,8 +417,9 @@ private fun JsNode.match(predicate: (JsNode) -> Boolean): Set<JsNode> {
         override fun <R : JsNode?> doTraverse(node: R, ctx: JsContext<*>?) {
             super.doTraverse(node, ctx)
 
-            if (node !in matched && predicate(node)) {
-                matched.add(node)
+            // TODO:
+            if (node != null && node !in matched && predicate(node!!)) {
+                matched.add(node!!)
             }
         }
     }
