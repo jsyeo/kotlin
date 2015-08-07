@@ -24,7 +24,7 @@ import java.util.Comparator
  * objects. As soon as the [Comparable] instances returned by a function for [a] and [b] values do not
  * compare as equal, the result of that comparison is returned.
  */
-public fun <T : Any> compareValuesBy(a: T?, b: T?, vararg functions: (T) -> Comparable<*>?): Int {
+public fun <T> compareValuesBy(a: T?, b: T?, vararg functions: (T) -> Comparable<*>?): Int {
     require(functions.size() > 0)
     if (a === b) return 0
     if (a == null) return -1
@@ -43,7 +43,7 @@ public fun <T : Any> compareValuesBy(a: T?, b: T?, vararg functions: (T) -> Comp
  * The function is applied to the given values [a] and [b] and return [Comparable] objects.
  * The result of comparison of these [Comparable] instances is returned.
  */
-public inline fun <T: Any> compareValuesBy(a: T?, b: T?, selector: (T) -> Comparable<*>?): Int {
+public inline fun <T> compareValuesBy(a: T?, b: T?, selector: (T) -> Comparable<*>?): Int {
     if (a === b) return 0
     if (a == null) return -1
     if (b == null) return 1
@@ -61,7 +61,7 @@ public inline fun <T: Any> compareValuesBy(a: T?, b: T?, selector: (T) -> Compar
 /**
  * Compares two nullable [Comparable] values. Null is considered less than any value.
  */
-public fun <T : Comparable<*>> compareValues(a: T?, b: T?): Int {
+public fun <T : Comparable<*>?> compareValues(a: T?, b: T?): Int {
     if (a === b) return 0
     if (a == null) return -1
     if (b == null) return 1
