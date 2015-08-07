@@ -27,7 +27,7 @@ import kotlin.reflect.jvm.internal.*
  * Returns a Java [Class] instance corresponding to the given [KClass] instance.
  */
 @Intrinsic("kotlin.KClass.java.property")
-public val <T> KClass<T>.java: Class<T>
+public val <T : Any> KClass<T>.java: Class<T>
     get() = (this as KClassImpl<T>).jClass
 
 /**
@@ -94,7 +94,7 @@ public val KType.javaType: Type
 /**
  * Returns a [KClass] instance corresponding to the given Java [Class] instance.
  */
-public val <T> Class<T>.kotlin: KClass<T>
+public val <T : Any> Class<T>.kotlin: KClass<T>
     get() = KClassImpl(this)
 
 /**
@@ -146,7 +146,7 @@ public val Method.kotlinFunction: KFunction<*>?
  * or `null` if this constructor cannot be represented by a Kotlin function
  * (for example, if it is a synthetic constructor).
  */
-public val <T> Constructor<T>.kotlinFunction: KFunction<T>?
+public val <T : Any> Constructor<T>.kotlinFunction: KFunction<T>?
     get() {
         if (isSynthetic()) return null
 

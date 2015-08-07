@@ -25,19 +25,19 @@ public val Field.kotlin: KProperty<*>?
 
 
 @deprecated("Use memberProperties instead.", ReplaceWith("memberProperties"))
-public val <T> KClass<T>.properties: Collection<KProperty1<T, *>>
+public val <T : Any> KClass<T>.properties: Collection<KProperty1<T, *>>
     get() = memberProperties
 
 @deprecated("Use extensionProperties instead.", ReplaceWith("extensionProperties"))
-public val <T> KClass<T>.extensionProperties: Collection<KProperty2<T, *, *>>
+public val <T : Any> KClass<T>.extensionProperties: Collection<KProperty2<T, *, *>>
     get() = memberExtensionProperties
 
 @deprecated("Use declaredMemberProperties instead.", ReplaceWith("declaredMemberProperties"))
-public val <T> KClass<T>.declaredProperties: Collection<KProperty1<T, *>>
+public val <T : Any> KClass<T>.declaredProperties: Collection<KProperty1<T, *>>
     get() = declaredMemberProperties
 
 @deprecated("Use declaredMemberExtensionProperties instead.", ReplaceWith("declaredMemberExtensionProperties"))
-public val <T> KClass<T>.declaredExtensionProperties: Collection<KProperty2<T, *, *>>
+public val <T : Any> KClass<T>.declaredExtensionProperties: Collection<KProperty2<T, *, *>>
     get() = declaredMemberExtensionProperties
 
 
