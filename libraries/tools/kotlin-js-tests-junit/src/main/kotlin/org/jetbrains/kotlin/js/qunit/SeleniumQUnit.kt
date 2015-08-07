@@ -23,7 +23,7 @@ public fun waitFor(maxMillis: Long, sleepMillis: Long = 100, predicate: () -> Bo
     return false
 }
 
-val TIMEOUT: Long = 10000
+val TIMEOUT: Long = 100000
 
 /**
  * Helper class to find QUnit tests using Selenium
