@@ -81,7 +81,11 @@ public class TypeResolver(
         if (!c.allowBareTypes && !c.forceResolveLazyTypes && lazinessToken.isLazy()) {
             // Bare types can be allowed only inside expressions; lazy type resolution is only relevant for declarations
             class LazyKotlinType : DelegatingType(), LazyEntity {
-                private val _delegate = storageManager.createLazyValue { doResolvePossiblyBareType(c, typeReference).getActualType() }
+                private val _delegate = storageManager.createLazyValue {
+                    val type = doResolvePossiblyBareType(c, typeReference).actualType
+                    type.arguments.forEach { ForceResolveUtil.forceResolveAllContents(it.type) }
+                    type
+                }
                 override fun getDelegate() = _delegate()
 
                 override fun forceResolveAllContents() {
@@ -98,6 +102,8 @@ public class TypeResolver(
         val type = doResolvePossiblyBareType(c, typeReference)
         if (!type.isBare()) {
             c.trace.record(BindingContext.TYPE, typeReference, type.getActualType())
+
+            type.actualType.arguments.forEach { ForceResolveUtil.forceResolveAllContents(it.type) }
         }
         return type
     }
@@ -251,12 +257,6 @@ public class TypeResolver(
                 c.trace.report(UNSUPPORTED.on(element, "Self-types are not supported yet"))
             }
         })
-
-        if (result != null && !result!!.isBare) {
-            for (argument in result!!.actualType.arguments) {
-                ForceResolveUtil.forceResolveAllContents(argument.type)
-            }
-        }
 
         return result ?: type(ErrorUtils.createErrorType(typeElement?.getDebugText() ?: "No type element"))
     }
